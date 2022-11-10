@@ -1,6 +1,6 @@
 /* eslint-disable */
 /**
- * Generated development client configuration.
+ * Generated production client configuration.
  *
  * THIS CODE IS AUTOMATICALLY GENERATED.
  *
@@ -12,12 +12,22 @@
 import type { ClientConfiguration } from "convex/browser";
 
 /**
- * The DEV Convex client configuration.
+ * NOCOMMIT
  *
- * This configuration connects your client to your dev Convex deployment
- * when `npx convex dev` is running.
+ * We recommend not committing this config into your main branch, because it
+ * references your production deployment. Instead:
+ * 1. Run `npx convex codegen` to generate your dev config and check
+ *    that in.
+ * 2. When you want to deploy, run `npx convex deploy` first. This will
+ *    generate your production config. Then run your bundler.
+ */
+
+/**
+ * The PRODUCTION Convex client configuration.
  *
- * To generate the production version, run `npx convex deploy`.
+ * This configuration connects your client to your production Convex deployment.
+ *
+ * To generate the dev version, run `npx convex dev` or `npx convex codegen`.
  *
  * Usage:
  *
