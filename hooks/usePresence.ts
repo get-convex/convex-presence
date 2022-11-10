@@ -10,12 +10,10 @@ const makeGate = () => {
   return [gate, unlock as unknown as Unlock] as const;
 };
 
-export default (location: string, recencySecs: number = 10) => {
+export default (location: string, recencyMs: number = 10000) => {
   const [presenceId, setPresenceId] = useState<Id<'presence'>>();
-  let presence = useQuery('getPresence', location, recencySecs * 1000);
-  presence = presence?.filter(
-    (p) => p.updated > Date.now() - recencySecs * 1000
-  );
+  let presence = useQuery('getPresence', location, recencyMs);
+  presence = presence?.filter((p) => p.updated > Date.now() - recencyMs);
   if (presence && presenceId) {
     presence = presence.filter((p) => !p._id.equals(presenceId));
   }
