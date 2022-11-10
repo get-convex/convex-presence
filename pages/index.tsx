@@ -38,8 +38,6 @@ const Home: NextPage = () => {
               </div>
             );
           })}
-
-        <div></div>
       </main>
 
       <footer className="flex px-8 border-t border-solid border-slate-300 justify-center items-center">
