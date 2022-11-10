@@ -1,6 +1,6 @@
 /* eslint-disable */
 /**
- * Generated production client configuration.
+ * Generated development client configuration.
  *
  * THIS CODE IS AUTOMATICALLY GENERATED.
  *
@@ -10,22 +10,12 @@
  */
 
 /**
- * NOCOMMIT
+ * The DEV Convex client configuration.
  *
- * We recommend not committing this config into your main branch, because it
- * references your production deployment. Instead:
- * 1. Run `npx convex codegen` to generate your dev config and check
- *    that in.
- * 2. When you want to deploy, run `npx convex deploy` first. This will
- *    generate your production config. Then run your bundler.
- */
-
-/**
- * The PRODUCTION Convex client configuration.
+ * This configuration connects your client to your dev Convex deployment
+ * when `npx convex dev` is running.
  *
- * This configuration connects your client to your production Convex deployment.
- *
- * To generate the dev version, run `npx convex dev` or `npx convex codegen`.
+ * To generate the production version, run `npx convex deploy`.
  *
  * Usage:
  *
@@ -36,6 +26,6 @@
  * ```
  */
 const clientConfig = {
-  address: "https://dynamic-salmon-30.convex.cloud",
+  address: "http://localhost:8187",
 };
 export default clientConfig;
