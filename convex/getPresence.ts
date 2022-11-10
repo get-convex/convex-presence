@@ -1,10 +1,12 @@
 import { Id } from './_generated/dataModel';
 import { query } from './_generated/server';
 
-export default query(async ({ db }, location: string) => {
+export default query(async ({ db }, location: string, recencyMs: number) => {
   const presence = await db
     .query('presence')
-    .withIndex('by_event_updated', (q) => q.eq('location', location))
+    .withIndex('by_event_updated', (q) =>
+      q.eq('location', location).gt('updated', Date.now() - recencyMs)
+    )
     .order('desc')
     .collect();
   return presence.map(

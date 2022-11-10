@@ -12,7 +12,7 @@ const makeGate = () => {
 
 export default (location: string, recencySecs: number = 10) => {
   const [presenceId, setPresenceId] = useState<Id<'presence'>>();
-  let presence = useQuery('getPresence', location);
+  let presence = useQuery('getPresence', location, recencySecs * 1000);
   presence = presence?.filter(
     (p) => p.updated > Date.now() - recencySecs * 1000
   );
@@ -20,7 +20,6 @@ export default (location: string, recencySecs: number = 10) => {
     presence = presence.filter((p) => !p._id.equals(presenceId));
   }
 
-  console.log(presence);
   const updatePresence = useMutation('updatePresence');
   const createPresence = useMutation('createPresence');
 
@@ -42,21 +41,15 @@ export default (location: string, recencySecs: number = 10) => {
     let stop = false;
     (async () => {
       const initialData = await getValue();
-      console.log('initial data');
-      console.log(initialData);
       const presenceId = await createPresence(location, initialData);
-      console.log('created ' + presenceId.toString());
       setPresenceId(presenceId);
       while (!stop) {
         const data = await getValue();
-        console.log(data);
         if (stop) break;
         await updatePresence(presenceId, data);
-        console.log('updated presence');
       }
       return () => {
         stop = true;
-        console.log('stopping ' + presenceId.toString());
       };
     })();
   }, [getValue]);
