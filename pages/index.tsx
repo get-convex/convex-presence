@@ -19,7 +19,7 @@ const Home: NextPage = () => {
 
       <main className="flex flex-grow flex-col justify-center items-center">
         <h1 className="m-0 text-5xl text-center leading-5">
-          Presence with <a href="https://convex.dev">Convex</a>
+          Presence with <a href="https://convex.dev">Convex!</a>
         </h1>
         <div className="fixed top-0 bottom-0 left-0 right-0"></div>
         {presence &&
