@@ -1,17 +1,18 @@
-import { GenericId } from 'convex/values'
-import { Id } from './_generated/dataModel'
-import { query } from './_generated/server'
+import { Id } from './_generated/dataModel';
+import { query } from './_generated/server';
 
-export default query(async ({ db }, eventId: Id<'events'>) => {
+export default query(async ({ db }, location: string) => {
   const presence = await db
     .query('presence')
-    .withIndex('by_event_updated', (q) => q.eq('eventId', eventId))
+    .withIndex('by_event_updated', (q) => q.eq('location', location))
     .order('desc')
-    .collect()
-  return presence.map(({ _id, name, updated, data }) => ({
-    _id,
-    name,
-    updated,
-    data,
-  }))
-})
+    .collect();
+  return presence.map(
+    ({ _id, updated, data }) =>
+      ({
+        _id,
+        updated,
+        data,
+      } as { _id: Id<'presence'>; updated: number; data: any })
+  );
+});

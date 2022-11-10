@@ -1,13 +1,9 @@
-import { Id } from './_generated/dataModel'
-import { mutation } from './_generated/server'
+import { mutation } from './_generated/server';
 
-export default mutation(
-  async ({ db }, name: string, eventId: Id<'events'>, data: {}) => {
-    return await db.insert('presence', {
-      name,
-      data,
-      eventId,
-      updated: Date.now(),
-    })
-  }
-)
+export default mutation(async ({ db }, location: string, data: {}) => {
+  return await db.insert('presence', {
+    data,
+    location,
+    updated: Date.now(),
+  });
+});
