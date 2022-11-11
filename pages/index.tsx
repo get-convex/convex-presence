@@ -20,22 +20,27 @@ const Home: NextPage = () => {
         <h1 className="m-5 text-5xl text-center leading-5">
           Presence with <a href="https://convex.dev">Convex</a>
         </h1>
-        <input
-          className="border rounded-full text-center m-2"
-          type="text"
-          placeholder="name"
-          name="name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
+        <p>
+          How are you feeling
+          <input
+            className="border rounded-full text-center m-2"
+            type="text"
+            placeholder="name"
+            name="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+          ?
+        </p>
         <div
-          className="flex flex-row justify-between text-7xl w-[500] h-[500] border-2 rounded p-6"
+          className="flex flex-row flex-wrap justify-between text-7xl w-[500px] h-[500px] border-2 rounded p-6"
           onMouseMove={(e) => update({ x: e.clientX, y: e.clientY, name })}
         >
-          <div className="p-4">{'↪️'}</div>
-          <div className="p-4">{'⏸️'}</div>
-          <div className="p-4">{'▶️'}</div>
-          <div className="p-4">{'⏩'}</div>
+          {'😀 😃 😄 😁 😆 😅 😂 🤣 🥲 🥹 ☺️ 😊 😇 🙂 🙃 😉 😌 😍 🥰 😘 😗 😙 😚 😋 😛 😝 😜 🤪 🤨 🧐 🤓 😎 🥸 🤩 🥳 😏 😒 😞 😔 😟 😕 🙁 ☹️ 😣 😖 😫 😩 🥺 😢 😭 😮‍💨 😤 😠 😡 🤬 🤯 😳 🥵 🥶 😱 😨 😰 😥 😓 🫣 🤗 🫡 🤔 🫢 🤭 🤫 🤥 😶 😶‍🌫️ 😐 😑 😬 🫠 🙄 😯 😦 😧 😮 😲 🥱 😴 🤤 😪 😵 😵‍💫 🫥 🤐 🥴 🤢 🤮 🤧 😷 🤒 🤕 🤑 🤠'
+            .split(' ')
+            .map((e) => (
+              <div className="p-1 text-3xl">{e}</div>
+            ))}
           {presence &&
             presence.map((p) => {
               return (
