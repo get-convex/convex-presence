@@ -1,14 +1,13 @@
+import { ReactMutation } from 'convex/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Id } from '../convex/_generated/dataModel';
 import { useQuery, useMutation } from '../convex/_generated/react';
+import { useLatestValue } from './useLatestValue';
 
-type Unlock = () => {};
 
-const makeGate = () => {
-  let unlock;
-  const gate = new Promise<undefined>((resolver) => (unlock = resolver));
-  return [gate, unlock as unknown as Unlock] as const;
-};
+const useSingleFlightThrottle = <T>(fn: () => Promise<T>) => {};
+
+
 
 export default (location: string, recencyMs: number = 10000) => {
   const [presenceId, setPresenceId] = useState<Id<'presence'>>();
@@ -21,23 +20,11 @@ export default (location: string, recencyMs: number = 10000) => {
   const updatePresence = useMutation('updatePresence');
   const createPresence = useMutation('createPresence');
 
-  const initial = useMemo(() => {
-    const [gate, unlock] = makeGate();
-    return { data: {}, gate, unlock };
-  }, []);
-
-  const ref = useRef(initial);
-  const getValue = useCallback(async () => {
-    await ref.current.gate;
-    const [gate, unlock] = makeGate();
-    ref.current.gate = gate;
-    ref.current.unlock = unlock;
-    return ref.current.data;
-  }, [ref]);
+  const [getValue, update] = useLatestValue<{}>();
 
   useEffect(() => {
-    let stop = false;
-    (async () => {
+      let stop = false;
+    const init = async () => {
       const initialData = await getValue();
       const presenceId = await createPresence(location, initialData);
       setPresenceId(presenceId);
@@ -46,15 +33,17 @@ export default (location: string, recencyMs: number = 10000) => {
         if (stop) break;
         await updatePresence(presenceId, data);
       }
-      return () => {
-        stop = true;
-      };
-    })();
+    };
+    init();
+        return () => {
+          stop = true;
+        };
+  }, []);
+
+
+
+  useEffect(() => {
   }, [getValue]);
 
-  const update = (data: any) => {
-    ref.current.data = data;
-    ref.current.unlock();
-  };
   return [presence, update] as const;
 };
