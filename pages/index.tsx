@@ -1,12 +1,21 @@
 import type { NextPage } from 'next';
 import Head from 'next/head';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import usePresence from '../hooks/usePresence';
 
 const Home: NextPage = () => {
-  const [presence, update] = usePresence('test');
-  const [name, setName] = useState('');
+  const [presence, setPresence] = usePresence('test');
+  const [data, setData] = useState({ name: '', cursor: '👻', x: 0, y: 0 });
+  const ref = useRef<HTMLDivElement>(null);
+  const update = useCallback(
+    (diff: Partial<typeof data>) => {
+      const next = { ...data, ...diff };
+      setData(next);
+      setPresence(next);
+    },
+    [data, setData, setPresence]
+  );
 
   return (
     <div className="py-8 flex flex-col min-h-screen">
@@ -17,29 +26,39 @@ const Home: NextPage = () => {
       </Head>
 
       <main className="flex flex-grow flex-col justify-center items-center">
-        <h1 className="m-5 text-5xl text-center leading-5">
+        <h1 className="m-6 text-5xl text-center leading-5">
           Presence with <a href="https://convex.dev">Convex</a>
         </h1>
         <p>
           How are you feeling
           <input
-            className="border rounded-full text-center m-2"
+            className="border rounded-md text-center mx-2"
             type="text"
             placeholder="name"
             name="name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            value={data.name}
+            onChange={(e) => update({ name: e.target.value })}
           />
           ?
         </p>
         <div
-          className="flex flex-row flex-wrap justify-between text-7xl w-[500px] h-[500px] border-2 rounded p-6"
-          onMouseMove={(e) => update({ x: e.clientX, y: e.clientY, name })}
+          ref={ref}
+          className="flex flex-row relative flex-wrap justify-between text-7xl w-[500px] h-[500px] border-2 rounded p-6 m-2"
+          onPointerMove={(e) => {
+            const { x, y } = ref.current!.getBoundingClientRect();
+            update({ x: e.clientX - x, y: e.clientY - y });
+          }}
         >
           {'😀 😃 😄 😁 😆 😅 😂 🤣 🥲 🥹 😊 😇 🙂 🙃 😉 😌 😍 🥰 😘 😗 😙 😚 😋 😛 😝 😜 🤪 🤨 🧐 🤓 😎 🥸 🤩 🥳 😏 😒 😞 😔 😟 😕 🙁 😣 😖 😫 😩 🥺 😢 😭 😮‍💨 😤 😠 😡 🤬 🤯 😳 🥵 🥶 😱 😨 😰 😥 😓 🫣 🤗 🫡 🤔 🫢 🤭 🤫 🤥 😶 😶‍🌫️ 😐 😑 😬 🫠 🙄 😯 😦 😧 😮 😲 🥱 😴 🤤 😪 😵 😵‍💫 🫥 🤐 🥴 🤢 🤮 🤧 😷 🤒 🤕 🤑 🤠'
             .split(' ')
             .map((e) => (
-              <div className="p-1 text-3xl">{e}</div>
+              <button
+                key={e}
+                className="p-1 text-3xl"
+                onClick={() => update({ cursor: e })}
+              >
+                {e === data.cursor ? <u>{e}</u> : e}
+              </button>
             ))}
           {presence &&
             presence.map((p) => {
@@ -51,9 +70,10 @@ const Home: NextPage = () => {
                     left: p.data.x,
                     top: p.data.y,
                     transform: 'translate(-50%, -50%)',
+                    transition: 'all 0.1s ease-out',
                   }}
                 >
-                  {'🐁 ' + p.data.name}
+                  {p.data.cursor + ' ' + p.data.name}
                 </span>
               );
             })}

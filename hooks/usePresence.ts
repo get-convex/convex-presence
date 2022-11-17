@@ -1,5 +1,4 @@
-import { ReactMutation } from 'convex/react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Id } from '../convex/_generated/dataModel';
 import { useQuery, useMutation } from '../convex/_generated/react';
 import useLatestValue from './useLatestValue';
@@ -18,7 +17,7 @@ export default (location: string, recencyMs: number = 10000) => {
   const [getValue, update] = useLatestValue<{}>();
 
   useEffect(() => {
-      let stop = false;
+    let stop = false;
     const init = async () => {
       const initialData = await getValue();
       const presenceId = await createPresence(location, initialData);
@@ -30,15 +29,10 @@ export default (location: string, recencyMs: number = 10000) => {
       }
     };
     init();
-        return () => {
-          stop = true;
-        };
+    return () => {
+      stop = true;
+    };
   }, []);
-
-
-
-  useEffect(() => {
-  }, [getValue]);
 
   return [presence, update] as const;
 };
