@@ -2,12 +2,7 @@ import { ReactMutation } from 'convex/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Id } from '../convex/_generated/dataModel';
 import { useQuery, useMutation } from '../convex/_generated/react';
-import { useLatestValue } from './useLatestValue';
-
-
-const useSingleFlightThrottle = <T>(fn: () => Promise<T>) => {};
-
-
+import useLatestValue from './useLatestValue';
 
 export default (location: string, recencyMs: number = 10000) => {
   const [presenceId, setPresenceId] = useState<Id<'presence'>>();
