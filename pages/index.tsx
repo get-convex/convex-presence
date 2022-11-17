@@ -5,17 +5,13 @@ import { useCallback, useRef, useState } from 'react';
 import usePresence from '../hooks/usePresence';
 
 const Home: NextPage = () => {
-  const [presence, setPresence] = usePresence('my-page-id');
-  const [data, setData] = useState({ name: '', cursor: '👻', x: 0, y: 0 });
+  const [data, others, setPresence] = usePresence('my-page-id', {
+    name: '',
+    cursor: '👻',
+    x: 0,
+    y: 0,
+  });
   const ref = useRef<HTMLDivElement>(null);
-  const update = useCallback(
-    (diff: Partial<typeof data>) => {
-      const next = { ...data, ...diff };
-      setData(next);
-      setPresence(next);
-    },
-    [data, setData, setPresence]
-  );
 
   return (
     <div className="py-8 flex flex-col min-h-screen">
@@ -37,7 +33,7 @@ const Home: NextPage = () => {
             placeholder="name"
             name="name"
             value={data.name}
-            onChange={(e) => update({ name: e.target.value })}
+            onChange={(e) => setPresence({ name: e.target.value })}
           />
           ?
         </p>
@@ -46,7 +42,7 @@ const Home: NextPage = () => {
           className="flex flex-row relative flex-wrap justify-between text-7xl w-[500px] h-[500px] border-2 rounded p-6 m-2"
           onPointerMove={(e) => {
             const { x, y } = ref.current!.getBoundingClientRect();
-            update({ x: e.clientX - x, y: e.clientY - y });
+            setPresence({ x: e.clientX - x, y: e.clientY - y });
           }}
         >
           {'😀 😃 😄 😁 😆 😅 😂 🤣 🥲 🥹 😊 😇 🙂 🙃 😉 😌 😍 🥰 😘 😗 😙 😚 😋 😛 😝 😜 🤪 🤨 🧐 🤓 😎 🥸 🤩 🥳 😏 😒 😞 😔 😟 😕 🙁 😣 😖 😫 😩 🥺 😢 😭 😮‍💨 😤 😠 😡 🤬 🤯 😳 🥵 🥶 😱 😨 😰 😥 😓 🫣 🤗 🫡 🤔 🫢 🤭 🤫 🤥 😶 😶‍🌫️ 😐 😑 😬 🫠 🙄 😯 😦 😧 😮 😲 🥱 😴 🤤 😪 😵 😵‍💫 🫥 🤐 🥴 🤢 🤮 🤧 😷 🤒 🤕 🤑 🤠'
@@ -55,28 +51,30 @@ const Home: NextPage = () => {
               <button
                 key={e}
                 className="p-1 text-3xl"
-                onClick={() => update({ cursor: e })}
+                onClick={() => setPresence({ cursor: e })}
               >
                 {e === data.cursor ? <u>{e}</u> : e}
               </button>
             ))}
-          {presence &&
-            presence.map((p) => {
-              return (
-                <span
-                  className="text-base absolute"
-                  key={p._id.toString()}
-                  style={{
-                    left: p.data.x,
-                    top: p.data.y,
-                    transform: 'translate(-50%, -50%)',
-                    transition: 'all 0.1s ease-out',
-                  }}
-                >
-                  {p.data.cursor + ' ' + p.data.name}
-                </span>
-              );
-            })}
+          {others &&
+            others
+              .filter((p) => p.data.x && p.data.y)
+              .map((p) => {
+                return (
+                  <span
+                    className="text-base absolute"
+                    key={p._id.toString()}
+                    style={{
+                      left: p.data.x,
+                      top: p.data.y,
+                      transform: 'translate(-50%, -50%)',
+                      transition: 'all 0.1s ease-out',
+                    }}
+                  >
+                    {p.data.cursor + ' ' + p.data.name}
+                  </span>
+                );
+              })}
         </div>
       </main>
 
