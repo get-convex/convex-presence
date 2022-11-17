@@ -1,5 +1,14 @@
 import { DependencyList, useCallback, useRef } from 'react';
 
+/**
+ * Generates a function that behaves like the passed in function,
+ * but only be executed one at a time. If multiple calls are requested
+ * before the current call has finished, it will only execute the last one.
+ * @param fn Function to be called, with only one request in flight at a time.
+ * @param deps The dependencies of the function, see useCallback.
+ * @returns Function that can be called whenever, returning a promise that will
+ * only resolve or throw if the underlying function gets called.
+ */
 export default function useSingleFlight<
   F extends (...args: any[]) => Promise<any>
 >(fn: F, deps: DependencyList) {
@@ -13,7 +22,11 @@ export default function useSingleFlight<
       flightStatus.current.inFlight = true;
       const firstReq = fn(...args);
       (async (_) => {
-        await firstReq;
+        try {
+          await firstReq;
+        } finally {
+          // If it failed, we naively just move on to the next request.
+        }
         while (flightStatus.current.upNext) {
           let cur = flightStatus.current.upNext;
           flightStatus.current.upNext = null;
