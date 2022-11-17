@@ -15,17 +15,15 @@ export default (location: string, recencyMs: number = 10000) => {
   const createPresence = useMutation('createPresence');
 
   const updateSF = useSingleFlight(
-    useCallback(
-      async (data: {}) => {
-        if (!presenceId) {
-          presenceId = await createPresence(location, data);
-          setPresenceId(presenceId);
-        } else {
-          await updatePresence(presenceId, data);
-        }
-      },
-      [presenceId, setPresenceId, updatePresence]
-    )
+    async (data: {}) => {
+      if (!presenceId) {
+        presenceId = await createPresence(location, data);
+        setPresenceId(presenceId);
+      } else {
+        await updatePresence(presenceId, data);
+      }
+    },
+    [presenceId, createPresence, setPresenceId, updatePresence]
   );
 
   return [presence, updateSF] as const;

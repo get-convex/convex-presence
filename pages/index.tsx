@@ -5,7 +5,7 @@ import { useCallback, useRef, useState } from 'react';
 import usePresence from '../hooks/usePresence';
 
 const Home: NextPage = () => {
-  const [presence, setPresence] = usePresence('test');
+  const [presence, setPresence] = usePresence('my-page-id');
   const [data, setData] = useState({ name: '', cursor: '👻', x: 0, y: 0 });
   const ref = useRef<HTMLDivElement>(null);
   const update = useCallback(
