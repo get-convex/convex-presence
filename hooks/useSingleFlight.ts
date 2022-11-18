@@ -18,28 +18,28 @@ export default function useSingleFlight<
   });
 
   return useCallback((...args: Parameters<F>): ReturnType<F> => {
-    if (!flightStatus.current.inFlight) {
-      flightStatus.current.inFlight = true;
-      const firstReq = fn(...args) as ReturnType<F>;
-      (async (_) => {
-        try {
-          await firstReq;
-        } finally {
-          // If it failed, we naively just move on to the next request.
-        }
-        while (flightStatus.current.upNext) {
-          let cur = flightStatus.current.upNext;
-          flightStatus.current.upNext = null;
-          await fn(...cur.args)
-            .then(cur.resolve)
-            .catch(cur.reject);
-        }
-        flightStatus.current.inFlight = false;
-      })();
-      return firstReq;
+    if (flightStatus.current.inFlight) {
+      return new Promise((resolve, reject) => {
+        flightStatus.current.upNext = { resolve, reject, args };
+      }) as ReturnType<F>;
     }
-    return new Promise((resolve, reject) => {
-      flightStatus.current.upNext = { resolve, reject, args };
-    }) as ReturnType<F>;
+    flightStatus.current.inFlight = true;
+    const firstReq = fn(...args) as ReturnType<F>;
+    (async (_) => {
+      try {
+        await firstReq;
+      } finally {
+        // If it failed, we naively just move on to the next request.
+      }
+      while (flightStatus.current.upNext) {
+        let cur = flightStatus.current.upNext;
+        flightStatus.current.upNext = null;
+        await fn(...cur.args)
+          .then(cur.resolve)
+          .catch(cur.reject);
+      }
+      flightStatus.current.inFlight = false;
+    })();
+    return firstReq;
   }, deps);
 }
