@@ -17,10 +17,10 @@ export default function useSingleFlight<
     upNext: null as null | { resolve: any; reject: any; args: Parameters<F> },
   });
 
-  return useCallback((...args: Parameters<F>) => {
+  return useCallback((...args: Parameters<F>): ReturnType<F> => {
     if (!flightStatus.current.inFlight) {
       flightStatus.current.inFlight = true;
-      const firstReq = fn(...args);
+      const firstReq = fn(...args) as ReturnType<F>;
       (async (_) => {
         try {
           await firstReq;
@@ -40,6 +40,6 @@ export default function useSingleFlight<
     }
     return new Promise((resolve, reject) => {
       flightStatus.current.upNext = { resolve, reject, args };
-    });
+    }) as ReturnType<F>;
   }, deps);
 }

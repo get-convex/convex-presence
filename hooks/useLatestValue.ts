@@ -22,16 +22,19 @@ export default function useLatestValue<T>() {
     return ref.current.data;
   }, [ref]);
 
-  const updateValue = (data: T) => {
-    ref.current.data = data;
-    ref.current.resolve();
-  };
+  const updateValue = useCallback(
+    (data: T) => {
+      ref.current.data = data;
+      ref.current.resolve();
+    },
+    [ref]
+  );
 
   return [nextValue, updateValue] as const;
 }
 
 const makeSignal = () => {
   let resolve: (value?: PromiseLike<undefined>) => void;
-  const promise = new Promise<undefined>((resolver) => (resolve = resolver));
+  const promise = new Promise<undefined>((r) => (resolve = r));
   return [promise, resolve!] as const;
 };
