@@ -1,7 +1,7 @@
 import type { NextPage } from 'next';
 import Head from 'next/head';
 import Image from 'next/image';
-import { useCallback, useRef, useState } from 'react';
+import { useRef } from 'react';
 import usePresence from '../hooks/usePresence';
 
 const Home: NextPage = () => {

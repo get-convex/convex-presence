@@ -34,7 +34,7 @@ export default function useLatestValue<T>() {
 }
 
 const makeSignal = () => {
-  let resolve: (value?: PromiseLike<undefined>) => void;
-  const promise = new Promise<undefined>((r) => (resolve = r));
+  let resolve: () => void;
+  const promise = new Promise<void>((r) => (resolve = r));
   return [promise, resolve!] as const;
 };

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Id } from '../convex/_generated/dataModel';
 import { useQuery, useMutation } from '../convex/_generated/react';
 import useSingleFlight from './useSingleFlight';
@@ -16,15 +16,14 @@ export default <T extends {}>(
   }
   const data = useRef(initialData);
 
-  useEffect(() => {
-    (async () => {
-      presenceId = await createPresence(location, initialData);
-      setPresenceId(presenceId);
-    })();
-  }, []);
-
   const updatePresence = useMutation('updatePresence');
   const createPresence = useMutation('createPresence');
+
+  useEffect(() => {
+    void (async () => {
+      setPresenceId(await createPresence(location, data.current));
+    })();
+  }, [location, createPresence]);
 
   const updateSF = useSingleFlight(
     async (patch: {}) => {
@@ -32,7 +31,7 @@ export default <T extends {}>(
       const updated = Object.assign(data.current, patch);
       await updatePresence(presenceId, updated);
     },
-    [data, presenceId, updatePresence]
+    [presenceId, updatePresence]
   );
 
   return [data.current, presence, updateSF] as const;
