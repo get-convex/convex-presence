@@ -1,4 +1,4 @@
-import { DependencyList, useCallback, useRef } from 'react';
+import { useCallback, useRef } from 'react';
 
 /**
  * Generates a function that behaves like the passed in function,
@@ -15,35 +15,38 @@ import { DependencyList, useCallback, useRef } from 'react';
  */
 export default function useSingleFlight<
   F extends (...args: any[]) => Promise<any>
->(fn: F, deps: DependencyList) {
+>(fn: F) {
   const flightStatus = useRef({
     inFlight: false,
     upNext: null as null | { resolve: any; reject: any; args: Parameters<F> },
   });
 
-  return useCallback((...args: Parameters<F>): ReturnType<F> => {
-    if (flightStatus.current.inFlight) {
-      return new Promise((resolve, reject) => {
-        flightStatus.current.upNext = { resolve, reject, args };
-      }) as ReturnType<F>;
-    }
-    flightStatus.current.inFlight = true;
-    const firstReq = fn(...args) as ReturnType<F>;
-    void (async () => {
-      try {
-        await firstReq;
-      } finally {
-        // If it failed, we naively just move on to the next request.
+  return useCallback(
+    (...args: Parameters<F>): ReturnType<F> => {
+      if (flightStatus.current.inFlight) {
+        return new Promise((resolve, reject) => {
+          flightStatus.current.upNext = { resolve, reject, args };
+        }) as ReturnType<F>;
       }
-      while (flightStatus.current.upNext) {
-        let cur = flightStatus.current.upNext;
-        flightStatus.current.upNext = null;
-        await fn(...cur.args)
-          .then(cur.resolve)
-          .catch(cur.reject);
-      }
-      flightStatus.current.inFlight = false;
-    })();
-    return firstReq;
-  }, deps); //eslint-disable-line react-hooks/exhaustive-deps
+      flightStatus.current.inFlight = true;
+      const firstReq = fn(...args) as ReturnType<F>;
+      void (async () => {
+        try {
+          await firstReq;
+        } finally {
+          // If it failed, we naively just move on to the next request.
+        }
+        while (flightStatus.current.upNext) {
+          let cur = flightStatus.current.upNext;
+          flightStatus.current.upNext = null;
+          await fn(...cur.args)
+            .then(cur.resolve)
+            .catch(cur.reject);
+        }
+        flightStatus.current.inFlight = false;
+      })();
+      return firstReq;
+    },
+    [fn]
+  );
 }

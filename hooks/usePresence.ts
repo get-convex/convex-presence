@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Id } from '../convex/_generated/dataModel';
 import { useQuery, useMutation } from '../convex/_generated/react';
 import useSingleFlight from './useSingleFlight';
@@ -16,7 +16,7 @@ export default <T extends {}>(
   }
   const data = useRef(initialData);
 
-  const updatePresence = useMutation('updatePresence');
+  const updatePresence = useSingleFlight(useMutation('updatePresence'));
   const createPresence = useMutation('createPresence');
 
   useEffect(() => {
@@ -25,7 +25,7 @@ export default <T extends {}>(
     })();
   }, [location, createPresence]);
 
-  const updateSF = useSingleFlight(
+  const updateSF = useCallback(
     async (patch: {}) => {
       if (!presenceId) return;
       const updated = Object.assign(data.current, patch);
