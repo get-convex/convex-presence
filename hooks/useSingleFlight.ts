@@ -18,14 +18,19 @@ export default function useSingleFlight<
 >(fn: F) {
   const flightStatus = useRef({
     inFlight: false,
-    upNext: null as null | { resolve: any; reject: any; args: Parameters<F> },
+    upNext: null as null | {
+      fn: F;
+      resolve: any;
+      reject: any;
+      args: Parameters<F>;
+    },
   });
 
   return useCallback(
     (...args: Parameters<F>): ReturnType<F> => {
       if (flightStatus.current.inFlight) {
         return new Promise((resolve, reject) => {
-          flightStatus.current.upNext = { resolve, reject, args };
+          flightStatus.current.upNext = { fn, resolve, reject, args };
         }) as ReturnType<F>;
       }
       flightStatus.current.inFlight = true;
@@ -39,7 +44,8 @@ export default function useSingleFlight<
         while (flightStatus.current.upNext) {
           let cur = flightStatus.current.upNext;
           flightStatus.current.upNext = null;
-          await fn(...cur.args)
+          await cur
+            .fn(...cur.args)
             .then(cur.resolve)
             .catch(cur.reject);
         }
