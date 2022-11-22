@@ -49,24 +49,8 @@ const Emojis =
     ' '
   );
 
-const MyFace = (props: {
-  emoji: string;
-  selectFace: (value: string) => void;
-}) => {
-  return (
-    <select
-      className="mx-2 text-xl"
-      onChange={(e) => props.selectFace(e.target.value)}
-    >
-      {Emojis.map((e) => (
-        <option selected={props.emoji === e}>{e}</option>
-      ))}
-    </select>
-  );
-};
-
 const PresencePane = () => {
-  const [data, others, setPresence] = usePresence('my-page-id', {
+  const [data, others, updatePresence] = usePresence('my-page-id', {
     text: '',
     emoji: '🥸',
     x: 0,
@@ -80,17 +64,21 @@ const PresencePane = () => {
     <div className="flex flex-grow flex-col items-center">
       <div className="flex p4 border-b border-solid flex-row justify-end">
         <FacePile people={others ?? []} />
-        <MyFace
-          emoji={data.emoji}
-          selectFace={(e) => setPresence({ emoji: e })}
-        />
+        <select
+          className="mx-2 text-xl"
+          onChange={(e) => updatePresence({ emoji: e.target.value })}
+        >
+          {Emojis.map((e) => (
+            <option selected={data.emoji === e}>{e}</option>
+          ))}
+        </select>
       </div>
       <div
         ref={ref}
         className="flex flex-row relative flex-wrap overflow-hidden justify-between text-7xl w-[500px] h-[500px] border-2 rounded p-6 m-2"
         onPointerMove={(e) => {
           const { x, y } = ref.current!.getBoundingClientRect();
-          void setPresence({ x: e.clientX - x, y: e.clientY - y });
+          void updatePresence({ x: e.clientX - x, y: e.clientY - y });
         }}
       >
         <span
@@ -131,7 +119,7 @@ const PresencePane = () => {
             placeholder="type something!"
             name="name"
             value={data.text}
-            onChange={(e) => setPresence({ text: e.target.value })}
+            onChange={(e) => updatePresence({ text: e.target.value })}
           />
         </span>
         <ul className="flex flex-col justify-start">
