@@ -4,16 +4,15 @@ import Head from 'next/head';
 import Image from 'next/image';
 import { useRef } from 'react';
 import usePresence, { PresenceData } from '../hooks/usePresence';
-import useSessionStorage from '../hooks/useSessionStorage';
 
-type Data = { name: string; cursor: string; x: number; y: number };
+type Data = { name: string; emoji: string; x: number; y: number };
 const OldFaceMs = 30000;
 
 const FacePile = ({ people }: { people: PresenceData<Data>[] }) => {
   const now = Date.now();
   return (
     <div className="isolate flex -space-x-2 overflow-hidden">
-      {people.map((p, i) => {
+      {people.map((p) => {
         const old = p.updated < now - OldFaceMs;
         return (
           <span
@@ -25,7 +24,7 @@ const FacePile = ({ people }: { people: PresenceData<Data>[] }) => {
               p.data.name + ' Last seen: ' + new Date(p.updated).toDateString()
             }
           >
-            {p.data.cursor}
+            {p.data.emoji}
           </span>
         );
       })}
@@ -33,11 +32,15 @@ const FacePile = ({ people }: { people: PresenceData<Data>[] }) => {
   );
 };
 
-const MyFace = (props: any) => {
+const MyFace = (props: {
+  emoji: string;
+  selectFace: (value: string) => void;
+}) => {
   return (
     <select
-      defaultValue={props.emoji}
+      value={props.emoji}
       className="relative inline-block text-xl"
+      onChange={(e) => props.selectFace(e.target.value)}
     >
       {'😀 😃 😄 😁 😆 😅 😂 🤣 🥲 🥹 😊 😇 🙂 🙃 😉 😌 😍 🥰 😘 😗 😙 😚 😋 😛 😝 😜 🤪 🤨 🧐 🤓 😎 🥸 🤩 🥳 😏 😒 😞 😔 😟 😕 🙁 😣 😖 😫 😩 🥺 😢 😭 😮‍💨 😤 😠 😡 🤬 🤯 😳 🥵 🥶 😱 😨 😰 😥 😓 🫣 🤗 🫡 🤔 🫢 🤭 🤫 🤥 😶 😶‍🌫️ 😐 😑 😬 🫠 🙄 😯 😦 😧 😮 😲 🥱 😴 🤤 😪 😵 😵‍💫 🫥 🤐 🥴 🤢 🤮 🤧 😷 🤒 🤕 🤑 🤠'
         .split(' ')
@@ -56,7 +59,6 @@ const Home: NextPage = () => {
     y: 0,
   });
   const ref = useRef<HTMLDivElement>(null);
-
   return (
     <div className="py-8 flex flex-col min-h-screen">
       <Head>
@@ -75,7 +77,10 @@ const Home: NextPage = () => {
           value={data.name}
           onChange={(e) => setPresence({ name: e.target.value })}
         />
-        <MyFace emoji={data.emoji} />
+        <MyFace
+          emoji={data.emoji}
+          selectFace={(e) => setPresence({ emoji: e })}
+        />
       </header>
       <main className="flex flex-grow flex-col justify-center items-center">
         <h1 className="m-6 text-5xl text-center leading-5">
@@ -84,42 +89,42 @@ const Home: NextPage = () => {
         <p>How are you feeling ?</p>
         <div
           ref={ref}
-          className="flex flex-row relative flex-wrap justify-between text-7xl w-[500px] h-[500px] border-2 rounded p-6 m-2"
+          className="flex flex-row relative flex-wrap overflow-hidden justify-between text-7xl w-[500px] h-[500px] border-2 rounded p-6 m-2"
           onPointerMove={(e) => {
             const { x, y } = ref.current!.getBoundingClientRect();
             void setPresence({ x: e.clientX - x, y: e.clientY - y });
           }}
         >
-          {'😀 😃 😄 😁 😆 😅 😂 🤣 🥲 🥹 😊 😇 🙂 🙃 😉 😌 😍 🥰 😘 😗 😙 😚 😋 😛 😝 😜 🤪 🤨 🧐 🤓 😎 🥸 🤩 🥳 😏 😒 😞 😔 😟 😕 🙁 😣 😖 😫 😩 🥺 😢 😭 😮‍💨 😤 😠 😡 🤬 🤯 😳 🥵 🥶 😱 😨 😰 😥 😓 🫣 🤗 🫡 🤔 🫢 🤭 🤫 🤥 😶 😶‍🌫️ 😐 😑 😬 🫠 🙄 😯 😦 😧 😮 😲 🥱 😴 🤤 😪 😵 😵‍💫 🫥 🤐 🥴 🤢 🤮 🤧 😷 🤒 🤕 🤑 🤠'
-            .split(' ')
-            .map((e) => (
-              <button
-                key={e}
-                className="p-1 text-3xl"
-                onClick={() => setPresence({ emoji: e })}
-              >
-                {e === data.emoji ? <u>{e}</u> : e}
-              </button>
-            ))}
-          {others &&
-            others
-              .filter((p) => p.data.x && p.data.y)
-              .map((p) => {
-                return (
-                  <span
-                    className="text-base absolute"
-                    key={p._id.toString()}
-                    style={{
-                      left: p.data.x,
-                      top: p.data.y,
-                      transform: 'translate(-50%, -50%)',
-                      transition: 'all 0.1s ease-out',
-                    }}
-                  >
-                    {p.data.emoji + ' ' + p.data.name}
-                  </span>
-                );
-              })}
+          <span
+            className="text-base absolute cursor-none"
+            key="mine"
+            style={{
+              left: data.x,
+              top: data.y,
+              transform: 'translate(-50%, -50%)',
+              //transition: 'all 0.1s ease-out',
+            }}
+          >
+            {data.emoji + ' ' + data.name}
+          </span>
+          {(others ?? [])
+            .filter((p) => p.data.x && p.data.y)
+            .map((p) => {
+              return (
+                <span
+                  className="text-base absolute"
+                  key={p._id?.toString()}
+                  style={{
+                    left: p.data.x,
+                    top: p.data.y,
+                    transform: 'translate(-50%, -50%) rotate(140deg)',
+                    transition: 'all 0.2s ease-out',
+                  }}
+                >
+                 {'▼ ' + p.data.name}
+                </span>
+              );
+            })}
         </div>
       </main>
 
