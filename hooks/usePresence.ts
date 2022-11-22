@@ -6,6 +6,8 @@ import useSingleFlight from './useSingleFlight';
 
 export type PresenceData<D> = { _id: Id<'presence'>; updated: number; data: D };
 
+const HEARTBEAT_PERIOD = 5000;
+
 export default <T extends { [key: string]: Value }>(
   location: string,
   initialData: T,
@@ -34,8 +36,20 @@ export default <T extends { [key: string]: Value }>(
     // We disable this lint beacause we only want this run once ever.
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    if (!presenceId) return;
+    const intervalId = setInterval(() => {
+      void updatePresence(presenceId, data);
+      console.log('updated');
+    }, HEARTBEAT_PERIOD);
+    return () => {
+      clearInterval(intervalId);
+      console.log('cleared');
+    };
+  }, [updatePresence, presenceId, data]);
+
   const updateSF = useCallback(
-    async (patch: {}) => {
+    (patch: {}) => {
       if (!presenceId) return;
       setData((last) => {
         const updated = { ...last, ...patch };
