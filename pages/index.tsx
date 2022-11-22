@@ -150,7 +150,7 @@ const Home: NextPage = () => {
       <main className="flex flex-grow flex-col justify-center items-center">
         <h1 className="m-6 text-3xl text-center leading-5">
           Presence with{' '}
-          <a className="text-purple-500" href="https://convex.dev">
+          <a className="text-[#8d2676]" href="https://convex.dev">
             Convex
           </a>
         </h1>
