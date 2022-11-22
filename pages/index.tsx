@@ -6,7 +6,7 @@ import { useRef } from 'react';
 import usePresence, { PresenceData } from '../hooks/usePresence';
 
 type Data = { text: string; emoji: string; x: number; y: number };
-const OldFaceMs = 10000;
+const OldMs = 10000;
 
 const FacePile = ({ people }: { people: PresenceData<Data>[] }) => {
   const now = Date.now();
@@ -14,7 +14,7 @@ const FacePile = ({ people }: { people: PresenceData<Data>[] }) => {
     <div className="isolate flex -space-x-2 overflow-hidden">
       {people
         .slice(0, 10)
-        .map((p) => ({ ...p, old: p.updated < now - OldFaceMs }))
+        .map((p) => ({ ...p, old: p.updated < now - OldMs }))
         .sort((p1, p2) =>
           p1.old === p2.old
             ? p1._id.toString() < p2._id.toString()
@@ -23,12 +23,11 @@ const FacePile = ({ people }: { people: PresenceData<Data>[] }) => {
             : Number(p1.old) - Number(p2.old)
         )
         .map((p) => {
-          const old = p.updated < now - OldFaceMs;
           return (
             <span
               className={classNames(
                 'relative inline-block h-6 w-6 rounded-full bg-white ring-2 ring-white text-xl',
-                { grayscale: old }
+                { grayscale: p.old }
               )}
               title={
                 p.data.text +
@@ -77,78 +76,82 @@ const PresencePane = () => {
     y: 0,
   });
   const ref = useRef<HTMLDivElement>(null);
+  const presentOthers = (others ?? []).filter(
+    (p) => p.updated > Date.now() - OldMs
+  );
   return (
     <div className="flex flex-grow flex-col items-center">
-     <h2>Facepile</h2>
-     <div className="flex p4 border-b border-solid flex-row justify-end">
-       <FacePile people={others ?? []} />
-       <MyFace
-         emoji={data.emoji}
-         selectFace={(e) => setPresence({ emoji: e })}
-       />
-     </div>
-     <h2>Cursors</h2>
-     <div
-       ref={ref}
-       className="flex flex-row relative flex-wrap overflow-hidden justify-between text-7xl w-[500px] h-[500px] border-2 rounded p-6 m-2"
-       onPointerMove={(e) => {
-         const { x, y } = ref.current!.getBoundingClientRect();
-         void setPresence({ x: e.clientX - x, y: e.clientY - y });
-       }}
-     >
-       <span
-         className="text-base absolute cursor-none"
-         key="mine"
-         style={{
-           left: data.x,
-           top: data.y,
-           transform: 'translate(-50%, -50%)',
-           //transition: 'all 0.1s ease-out',
-         }}
-       >
-         {data.emoji + ' ' + data.text}
-       </span>
-       {(others ?? [])
-         .filter((p) => p.data.x && p.data.y)
-         .map((p) => (
-           <span
-             className="text-base absolute"
-             key={p._id?.toString()}
-             style={{
-               left: p.data.x,
-               top: p.data.y,
-               transform: 'translate(-50%, -50%)',
-               transition: 'all 0.20s ease-out',
-             }}
-           >
-             {p.data.emoji + ' ' + p.data.text}
-           </span>
-         ))}
-     </div>
-     <h2>Sharing text</h2>
-     <div className="w-1/2">
-       <span>
-         {data.emoji}
-         <input
-           className="inline-block border rounded-md text-center mx-2"
-           type="text"
-           placeholder="type something!"
-           name="name"
-           value={data.text}
-           onChange={(e) => setPresence({ text: e.target.value })}
-         />
-       </span>
-       <ul className="flex flex-col justify-start">
-         {(others ?? [])
-           .filter((p) => p.data.text)
-           .map((p) => (
-             <li key={p._id.toString()}>
-               <p>{p.data.emoji + ': ' + p.data.text}</p>
-             </li>
-           ))}
-       </ul>
-     </div>
-     <div className="h-48"></div>
+      <h2>Facepile</h2>
+      <div className="flex p4 border-b border-solid flex-row justify-end">
+        <FacePile people={others ?? []} />
+        <MyFace
+          emoji={data.emoji}
+          selectFace={(e) => setPresence({ emoji: e })}
+        />
+      </div>
+      <h2>Cursors</h2>
+      <div
+        ref={ref}
+        className="flex flex-row relative flex-wrap overflow-hidden justify-between text-7xl w-[500px] h-[500px] border-2 rounded p-6 m-2"
+        onPointerMove={(e) => {
+          const { x, y } = ref.current!.getBoundingClientRect();
+          void setPresence({ x: e.clientX - x, y: e.clientY - y });
+        }}
+      >
+        <span
+          className="text-base absolute cursor-none"
+          key="mine"
+          style={{
+            left: data.x,
+            top: data.y,
+            transform: 'translate(-50%, -50%)',
+            //transition: 'all 0.1s ease-out',
+          }}
+        >
+          {data.emoji + ' ' + data.text}
+        </span>
+        {presentOthers
+          .filter((p) => p.data.x && p.data.y)
+          .map((p) => (
+            <span
+              className="text-base absolute"
+              key={p._id?.toString()}
+              style={{
+                left: p.data.x,
+                top: p.data.y,
+                transform: 'translate(-50%, -50%)',
+                transition: 'all 0.20s ease-out',
+              }}
+            >
+              {p.data.emoji + ' ' + p.data.text}
+            </span>
+          ))}
+      </div>
+      <h2>Sharing text</h2>
+      <div className="w-1/2">
+        <span>
+          {data.emoji}
+          <input
+            className="inline-block border rounded-md mx-2"
+            type="text"
+            placeholder="type something!"
+            name="name"
+            value={data.text}
+            onChange={(e) => setPresence({ text: e.target.value })}
+          />
+        </span>
+        <ul className="flex flex-col justify-start">
+          {presentOthers
+            .filter((p) => p.data.text)
+            .sort((p1, p2) => (p1._id.toString() < p2._id.toString() ? -1 : 1))
+            .map((p) => (
+              <li key={p._id.toString()}>
+                <p>{p.data.emoji + ': ' + p.data.text}</p>
+              </li>
+            ))}
+        </ul>
+      </div>
+      <div className="h-48"></div>
     </div>
   );
 };
