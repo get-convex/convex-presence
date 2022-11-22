@@ -40,12 +40,9 @@ export default <T extends { [key: string]: Value }>(
     if (!presenceId) return;
     const intervalId = setInterval(() => {
       void updatePresence(presenceId, data);
-      console.log('updated');
     }, HEARTBEAT_PERIOD);
-    return () => {
-      clearInterval(intervalId);
-      console.log('cleared');
-    };
+    // Whenever we have any data change, it will get cleared.
+    return () => clearInterval(intervalId);
   }, [updatePresence, presenceId, data]);
 
   const updateSF = useCallback(
