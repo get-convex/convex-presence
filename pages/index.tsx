@@ -88,7 +88,6 @@ const PresencePane = () => {
             left: data.x,
             top: data.y,
             transform: 'translate(-50%, -50%)',
-            //transition: 'all 0.1s ease-out',
           }}
         >
           {data.emoji + ' ' + data.text}
