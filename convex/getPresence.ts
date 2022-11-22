@@ -7,7 +7,7 @@ export default query(async ({ db }, location: string) => {
     .query('presence')
     .withIndex('by_location_updated', (q) => q.eq('location', location))
     .order('desc')
-    .take(100);
+    .take(20);
   return presence.map(
     ({ _id, updated, data }) =>
       ({
