@@ -2,7 +2,6 @@ import { Value } from 'convex/values';
 import { useCallback, useEffect, useState } from 'react';
 import { Id } from '../convex/_generated/dataModel';
 import { useQuery, useMutation } from '../convex/_generated/react';
-import useSessionStorage from './useSessionStorage';
 import useSingleFlight from './useSingleFlight';
 
 export type PresenceData<D> = { _id: Id<'presence'>; updated: number; data: D };
@@ -13,9 +12,7 @@ export default <T extends { [key: string]: Value }>(
   recencyMs?: number
 ) => {
   const [data, setData] = useState(initialData);
-  const [presenceId, setPresenceId] = useSessionStorage<Id<'presence'>>(
-    'presenceId:' + location
-  );
+  const [presenceId, setPresenceId] = useState<Id<'presence'>>();
   let presence = useQuery('getPresence', location) as
     | PresenceData<T>[]
     | undefined;
