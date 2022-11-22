@@ -6,6 +6,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "classnames": "^2.3.2",
     "convex": "^0.4.0",
     "next": "latest",
     "react": "^18.2.0",

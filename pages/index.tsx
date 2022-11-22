@@ -1,13 +1,57 @@
+import classNames from 'classnames';
 import type { NextPage } from 'next';
 import Head from 'next/head';
 import Image from 'next/image';
 import { useRef } from 'react';
-import usePresence from '../hooks/usePresence';
+import usePresence, { PresenceData } from '../hooks/usePresence';
+import useSessionStorage from '../hooks/useSessionStorage';
+
+type Data = { name: string; cursor: string; x: number; y: number };
+const OldFaceMs = 30000;
+
+const FacePile = ({ people }: { people: PresenceData<Data>[] }) => {
+  const now = Date.now();
+  return (
+    <div className="isolate flex -space-x-2 overflow-hidden">
+      {people.map((p, i) => {
+        const old = p.updated < now - OldFaceMs;
+        return (
+          <span
+            className={classNames(
+              'relative inline-block h-6 w-6 rounded-full bg-white ring-2 ring-white text-xl',
+              { grayscale: old }
+            )}
+            title={
+              p.data.name + ' Last seen: ' + new Date(p.updated).toDateString()
+            }
+          >
+            {p.data.cursor}
+          </span>
+        );
+      })}
+    </div>
+  );
+};
+
+const MyFace = (props: any) => {
+  return (
+    <select
+      defaultValue={props.emoji}
+      className="relative inline-block text-xl"
+    >
+      {'😀 😃 😄 😁 😆 😅 😂 🤣 🥲 🥹 😊 😇 🙂 🙃 😉 😌 😍 🥰 😘 😗 😙 😚 😋 😛 😝 😜 🤪 🤨 🧐 🤓 😎 🥸 🤩 🥳 😏 😒 😞 😔 😟 😕 🙁 😣 😖 😫 😩 🥺 😢 😭 😮‍💨 😤 😠 😡 🤬 🤯 😳 🥵 🥶 😱 😨 😰 😥 😓 🫣 🤗 🫡 🤔 🫢 🤭 🤫 🤥 😶 😶‍🌫️ 😐 😑 😬 🫠 🙄 😯 😦 😧 😮 😲 🥱 😴 🤤 😪 😵 😵‍💫 🫥 🤐 🥴 🤢 🤮 🤧 😷 🤒 🤕 🤑 🤠'
+        .split(' ')
+        .map((e) => (
+          <option>{e}</option>
+        ))}
+    </select>
+  );
+};
 
 const Home: NextPage = () => {
   const [data, others, setPresence] = usePresence('my-page-id', {
     name: '',
-    cursor: '👻',
+    emoji: '👻',
     x: 0,
     y: 0,
   });
@@ -21,28 +65,29 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.svg" />
       </Head>
 
+      <header className="flex p4 border-b border-solid flex-row justify-end">
+        <FacePile people={others ?? []} />
+        <input
+          className="border rounded-md text-center mx-2"
+          type="text"
+          placeholder="name"
+          name="name"
+          value={data.name}
+          onChange={(e) => setPresence({ name: e.target.value })}
+        />
+        <MyFace emoji={data.emoji} />
+      </header>
       <main className="flex flex-grow flex-col justify-center items-center">
         <h1 className="m-6 text-5xl text-center leading-5">
           Presence with <a href="https://convex.dev">Convex</a>
         </h1>
-        <p>
-          How are you feeling
-          <input
-            className="border rounded-md text-center mx-2"
-            type="text"
-            placeholder="name"
-            name="name"
-            value={data.name}
-            onChange={(e) => setPresence({ name: e.target.value })}
-          />
-          ?
-        </p>
+        <p>How are you feeling ?</p>
         <div
           ref={ref}
           className="flex flex-row relative flex-wrap justify-between text-7xl w-[500px] h-[500px] border-2 rounded p-6 m-2"
           onPointerMove={(e) => {
             const { x, y } = ref.current!.getBoundingClientRect();
-            setPresence({ x: e.clientX - x, y: e.clientY - y });
+            void setPresence({ x: e.clientX - x, y: e.clientY - y });
           }}
         >
           {'😀 😃 😄 😁 😆 😅 😂 🤣 🥲 🥹 😊 😇 🙂 🙃 😉 😌 😍 🥰 😘 😗 😙 😚 😋 😛 😝 😜 🤪 🤨 🧐 🤓 😎 🥸 🤩 🥳 😏 😒 😞 😔 😟 😕 🙁 😣 😖 😫 😩 🥺 😢 😭 😮‍💨 😤 😠 😡 🤬 🤯 😳 🥵 🥶 😱 😨 😰 😥 😓 🫣 🤗 🫡 🤔 🫢 🤭 🤫 🤥 😶 😶‍🌫️ 😐 😑 😬 🫠 🙄 😯 😦 😧 😮 😲 🥱 😴 🤤 😪 😵 😵‍💫 🫥 🤐 🥴 🤢 🤮 🤧 😷 🤒 🤕 🤑 🤠'
@@ -51,9 +96,9 @@ const Home: NextPage = () => {
               <button
                 key={e}
                 className="p-1 text-3xl"
-                onClick={() => setPresence({ cursor: e })}
+                onClick={() => setPresence({ emoji: e })}
               >
-                {e === data.cursor ? <u>{e}</u> : e}
+                {e === data.emoji ? <u>{e}</u> : e}
               </button>
             ))}
           {others &&
@@ -71,7 +116,7 @@ const Home: NextPage = () => {
                       transition: 'all 0.1s ease-out',
                     }}
                   >
-                    {p.data.cursor + ' ' + p.data.name}
+                    {p.data.emoji + ' ' + p.data.name}
                   </span>
                 );
               })}
