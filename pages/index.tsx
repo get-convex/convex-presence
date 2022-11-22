@@ -124,9 +124,9 @@ const PresencePane = () => {
       </div>
       <div className="w-1/2">
         <span>
-          {data.emoji}
+          {data.emoji + ': '}
           <input
-            className="inline-block border rounded-md mx-2"
+            className="inline-block border rounded-md "
             type="text"
             placeholder="type something!"
             name="name"
@@ -173,6 +173,7 @@ const Home: NextPage = () => {
       </main>
 
       <footer className="flex p-8 border-t border-solid border-slate-300 justify-center items-center">
+        <p>Hint: try opening up multiple tabs</p>
         <a
           href="https://www.convex.dev/"
           target="_blank"
