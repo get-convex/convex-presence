@@ -58,11 +58,8 @@ const MyFace = (props: {
       className="mx-2 text-xl"
       onChange={(e) => props.selectFace(e.target.value)}
     >
-      <option selected disabled hidden>
-        {props.emoji}
-      </option>
       {Emojis.map((e) => (
-        <option>{e}</option>
+        <option selected={props.emoji === e}>{e}</option>
       ))}
     </select>
   );
@@ -71,7 +68,7 @@ const MyFace = (props: {
 const PresencePane = () => {
   const [data, others, setPresence] = usePresence('my-page-id', {
     text: '',
-    emoji: '👻',
+    emoji: '🥸',
     x: 0,
     y: 0,
   });
@@ -81,7 +78,7 @@ const PresencePane = () => {
   );
   return (
     <div className="flex flex-grow flex-col items-center">
-      <h2>Facepile</h2>
+      <h2 className="text-xl m-2">Facepile</h2>
       <div className="flex p4 border-b border-solid flex-row justify-end">
         <FacePile people={others ?? []} />
         <MyFace
@@ -89,7 +86,7 @@ const PresencePane = () => {
           selectFace={(e) => setPresence({ emoji: e })}
         />
       </div>
-      <h2>Cursors</h2>
+      <h2 className="text-xl m-2">Cursors</h2>
       <div
         ref={ref}
         className="flex flex-row relative flex-wrap overflow-hidden justify-between text-7xl w-[500px] h-[500px] border-2 rounded p-6 m-2"
@@ -175,7 +172,7 @@ const Home: NextPage = () => {
         </div>
       </main>
 
-      <footer className="flex px-8 border-t border-solid border-slate-300 justify-center items-center">
+      <footer className="flex p-8 border-t border-solid border-slate-300 justify-center items-center">
         <a
           href="https://www.convex.dev/"
           target="_blank"
