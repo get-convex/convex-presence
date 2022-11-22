@@ -11,7 +11,7 @@ if (
   process.env.NODE_ENV === 'development'
   // && /VIVID_ENABLED=true/.test(document.cookie)
 ) {
-  import('vivid-studio').then((v) => v.run());
+  void import('vivid-studio').then((v) => v.run());
   import('vivid-studio/style.css');
 }
 
