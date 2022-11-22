@@ -1,38 +1,53 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { Value } from 'convex/values';
+import { useCallback, useEffect, useState } from 'react';
 import { Id } from '../convex/_generated/dataModel';
 import { useQuery, useMutation } from '../convex/_generated/react';
+import useSessionStorage from './useSessionStorage';
 import useSingleFlight from './useSingleFlight';
 
-export default <T extends {}>(
+export type PresenceData<D> = { _id: Id<'presence'>; updated: number; data: D };
+
+export default <T extends { [key: string]: Value }>(
   location: string,
   initialData: T,
-  recencyMs: number = 10000
+  recencyMs?: number
 ) => {
-  let [presenceId, setPresenceId] = useState<Id<'presence'>>();
-  let presence = useQuery('getPresence', location, recencyMs);
-  presence = presence?.filter((p) => p.updated > Date.now() - recencyMs);
+  const [data, setData] = useState(initialData);
+  const [presenceId, setPresenceId] = useSessionStorage<Id<'presence'>>(
+    'presenceId:' + location
+  );
+  let presence = useQuery('getPresence', location) as
+    | PresenceData<T>[]
+    | undefined;
+  if (recencyMs) {
+    presence = presence?.filter((p) => p.updated > Date.now() - recencyMs);
+  }
   if (presence && presenceId) {
     presence = presence.filter((p) => !p._id.equals(presenceId));
   }
-  const data = useRef(initialData);
 
   const updatePresence = useSingleFlight(useMutation('updatePresence'));
   const createPresence = useMutation('createPresence');
 
   useEffect(() => {
+    if (presenceId) return;
     void (async () => {
-      setPresenceId(await createPresence(location, data.current));
+      setPresenceId(await createPresence(location, data));
     })();
-  }, [location, createPresence]);
+    // We disable this lint beacause we only want this run once ever.
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const updateSF = useCallback(
     async (patch: {}) => {
       if (!presenceId) return;
-      const updated = Object.assign(data.current, patch);
-      await updatePresence(presenceId, updated);
+      setData((last) => {
+        const updated = { ...last, ...patch };
+        void updatePresence(presenceId, updated);
+        return updated;
+      });
     },
     [presenceId, updatePresence]
   );
 
-  return [data.current, presence, updateSF] as const;
+  return [data, presence, updateSF] as const;
 };

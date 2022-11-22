@@ -5,5 +5,5 @@ export default defineSchema({
     location: s.string(),
     updated: s.number(),
     data: s.object({}),
-  }).index('by_event_updated', ['location', 'updated']),
+  }).index('by_location_updated', ['location', 'updated']),
 });
