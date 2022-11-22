@@ -78,7 +78,6 @@ const PresencePane = () => {
   );
   return (
     <div className="flex flex-grow flex-col items-center">
-      <h2 className="text-xl m-2">Facepile</h2>
       <div className="flex p4 border-b border-solid flex-row justify-end">
         <FacePile people={others ?? []} />
         <MyFace
@@ -86,7 +85,6 @@ const PresencePane = () => {
           selectFace={(e) => setPresence({ emoji: e })}
         />
       </div>
-      <h2 className="text-xl m-2">Cursors</h2>
       <div
         ref={ref}
         className="flex flex-row relative flex-wrap overflow-hidden justify-between text-7xl w-[500px] h-[500px] border-2 rounded p-6 m-2"
@@ -124,7 +122,6 @@ const PresencePane = () => {
             </span>
           ))}
       </div>
-      <h2>Sharing text</h2>
       <div className="w-1/2">
         <span>
           {data.emoji}
