@@ -62,6 +62,7 @@ const PresencePane = () => {
   );
   return (
     <div className="flex flex-grow flex-col items-center">
+      <h2>Facepile:</h2>
       <div className="flex p4 border-b border-solid flex-row justify-end">
         <FacePile people={others ?? []} />
         <select
@@ -73,6 +74,7 @@ const PresencePane = () => {
           ))}
         </select>
       </div>
+      <h2 className="mt-1">Shared cursors:</h2>
       <div
         ref={ref}
         className="flex flex-row relative flex-wrap overflow-hidden justify-between text-7xl w-[500px] h-[500px] border-2 rounded p-6 m-2"
@@ -109,6 +111,7 @@ const PresencePane = () => {
             </span>
           ))}
       </div>
+      <h2>Shared text:</h2>
       <div className="w-1/2">
         <span>
           {data.emoji + ': '}
