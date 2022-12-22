@@ -29,14 +29,17 @@ export const update = mutation(
 
 export const list = query(
   async ({ db }, location: string, exclude: Id<'presence'> | null) => {
+    if (!exclude) {
+      return [];
+    }
     const presence = await db
       .query('presence')
       .withIndex('by_location_updated', (q) => q.eq('location', location))
       .order('desc')
-      .filter((q) => q.and(!!exclude, q.neq(q.field('_id'), exclude!)))
+      .filter((q) => q.neq(q.field('_id'), exclude))
       .take(20);
     return presence.map(({ _creationTime, updated, data }) => ({
-      _creationTime,
+      created: _creationTime,
       updated,
       data,
     }));

@@ -5,7 +5,7 @@ import { useQuery, useMutation } from '../convex/_generated/react';
 import useSingleFlight from './useSingleFlight';
 
 export type PresenceData<D> = {
-  _creationTime: number;
+  created: number;
   updated: number;
   data: D;
 };

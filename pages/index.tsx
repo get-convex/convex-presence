@@ -17,7 +17,7 @@ const FacePile = ({ people }: { people: PresenceData<Data>[] }) => {
         .map((p) => ({ ...p, old: p.updated < now - OldMs }))
         .sort((p1, p2) =>
           p1.old === p2.old
-            ? p2._creationTime - p1._creationTime
+            ? p2.created - p1.created
             : Number(p1.old) - Number(p2.old)
         )
         .map((p) => {
@@ -112,7 +112,7 @@ const PresencePane = () => {
           .map((p) => (
             <span
               className="text-base absolute"
-              key={p._creationTime}
+              key={p.created}
               style={{
                 left: p.data.x,
                 top: p.data.y,
@@ -140,9 +140,9 @@ const PresencePane = () => {
         <ul className="flex flex-col justify-start">
           {presentOthers
             .filter((p) => p.data.text)
-            .sort((p1, p2) => p2._creationTime - p1._creationTime)
+            .sort((p1, p2) => p2.created - p1.created)
             .map((p) => (
-              <li key={p._creationTime}>
+              <li key={p.created}>
                 <p>{p.data.emoji + ': ' + p.data.text}</p>
               </li>
             ))}
