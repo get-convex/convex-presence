@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import type { NextPage } from 'next';
 import Head from 'next/head';
 import Image from 'next/image';
-import { useRef } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import usePresence, { PresenceData } from '../hooks/usePresence';
 
 type Data = { text: string; emoji: string; x: number; y: number };
@@ -17,9 +17,7 @@ const FacePile = ({ people }: { people: PresenceData<Data>[] }) => {
         .map((p) => ({ ...p, old: p.updated < now - OldMs }))
         .sort((p1, p2) =>
           p1.old === p2.old
-            ? p1._id.toString() < p2._id.toString()
-              ? -1
-              : 1
+            ? p2._creationTime - p1._creationTime
             : Number(p1.old) - Number(p2.old)
         )
         .map((p) => {
@@ -50,7 +48,9 @@ const Emojis =
   );
 
 const PresencePane = () => {
-  const [data, others, updatePresence] = usePresence('my-page-id', {
+  const userId = useMemo(() => 'User' + Math.floor(Math.random() * 10000), []);
+  const [location, setLocation] = useState('PageA');
+  const [data, others, updatePresence] = usePresence(userId, location, {
     text: '',
     emoji: '🥸',
     x: 0,
@@ -62,6 +62,19 @@ const PresencePane = () => {
   );
   return (
     <div className="flex flex-grow flex-col items-center">
+      <select
+        value={location}
+        className="text-xl"
+        onChange={(e) => setLocation(e.target.value)}
+      >
+        <option> PageA </option>
+        <option> PageB </option>
+        <option> PageC </option>
+      </select>
+      <p className="text-sm leading-5 text-gray-500">
+        Simulating being on different pages
+      </p>
+      <br />
       <h2>Facepile:</h2>
       <div className="flex p4 border-b border-solid flex-row justify-end">
         <FacePile people={others ?? []} />
@@ -99,7 +112,7 @@ const PresencePane = () => {
           .map((p) => (
             <span
               className="text-base absolute"
-              key={p._id?.toString()}
+              key={p._creationTime}
               style={{
                 left: p.data.x,
                 top: p.data.y,
@@ -127,9 +140,9 @@ const PresencePane = () => {
         <ul className="flex flex-col justify-start">
           {presentOthers
             .filter((p) => p.data.text)
-            .sort((p1, p2) => (p1._id.toString() < p2._id.toString() ? -1 : 1))
+            .sort((p1, p2) => p2._creationTime - p1._creationTime)
             .map((p) => (
-              <li key={p._id.toString()}>
+              <li key={p._creationTime}>
                 <p>{p.data.emoji + ': ' + p.data.text}</p>
               </li>
             ))}

@@ -1,40 +1,45 @@
 import { Value } from 'convex/values';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Id } from '../convex/_generated/dataModel';
 import { useQuery, useMutation } from '../convex/_generated/react';
 import useSingleFlight from './useSingleFlight';
 
-export type PresenceData<D> = { _id: Id<'presence'>; updated: number; data: D };
+export type PresenceData<D> = {
+  _creationTime: number;
+  updated: number;
+  data: D;
+};
 
 const HEARTBEAT_PERIOD = 5000;
 
 export default <T extends { [key: string]: Value }>(
+  user: string,
   location: string,
   initialData: T,
   recencyMs?: number
 ) => {
   const [data, setData] = useState(initialData);
+  const initialRef = useRef(initialData);
+
   const [presenceId, setPresenceId] = useState<Id<'presence'>>();
-  let presence = useQuery('getPresence', location) as
-    | PresenceData<T>[]
-    | undefined;
+  let presence: PresenceData<T>[] | undefined = useQuery(
+    'presence:list',
+    location,
+    presenceId ?? null
+  );
   if (recencyMs) {
     presence = presence?.filter((p) => p.updated > Date.now() - recencyMs);
   }
-  if (presence && presenceId) {
-    presence = presence.filter((p) => !p._id.equals(presenceId));
-  }
 
-  const updatePresence = useSingleFlight(useMutation('updatePresence'));
-  const createPresence = useMutation('createPresence');
+  const updatePresence = useSingleFlight(useMutation('presence:update'));
+  const getOrCreate = useMutation('presence:getOrCreate');
 
   useEffect(() => {
-    if (presenceId) return;
     void (async () => {
-      setPresenceId(await createPresence(location, data));
+      setPresenceId(await getOrCreate(user, location, initialRef.current));
     })();
-    // We disable this lint beacause we only want this run once ever.
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    return () => setPresenceId(undefined);
+  }, [user, location, getOrCreate]);
 
   useEffect(() => {
     if (!presenceId) return;
@@ -47,10 +52,11 @@ export default <T extends { [key: string]: Value }>(
 
   const updateSF = useCallback(
     (patch: {}) => {
-      if (!presenceId) return;
       setData((last) => {
         const updated = { ...last, ...patch };
-        void updatePresence(presenceId, updated);
+        if (presenceId) {
+          void updatePresence(presenceId, updated);
+        }
         return updated;
       });
     },
