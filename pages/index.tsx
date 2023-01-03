@@ -17,14 +17,14 @@ const FacePile = ({ people }: { people: PresenceData<Data>[] }) => {
         .map((p) => ({ ...p, old: p.updated < now - OldMs }))
         .sort((p1, p2) =>
           p1.old === p2.old
-            ? p2.created - p1.created
+            ? p1.created - p2.created
             : Number(p1.old) - Number(p2.old)
         )
         .map((p) => {
           return (
             <span
               className={classNames(
-                'relative inline-block h-6 w-6 rounded-full bg-white ring-2 ring-white text-xl',
+                'relative grayscale inline-block h-6 w-6 rounded-full bg-white ring-2 ring-white text-xl',
                 { grayscale: p.old }
               )}
               title={
@@ -48,14 +48,18 @@ const Emojis =
   );
 
 const PresencePane = () => {
-  const userId = useMemo(() => 'User' + Math.floor(Math.random() * 10000), []);
+  const userId = useMemo(() => Math.floor(Math.random() * 10000), []);
   const [location, setLocation] = useState('PageA');
-  const [data, others, updatePresence] = usePresence(userId, location, {
-    text: '',
-    emoji: '🥸',
-    x: 0,
-    y: 0,
-  });
+  const [data, others, updatePresence] = usePresence(
+    'User' + userId,
+    location,
+    {
+      text: '',
+      emoji: Emojis[userId % Emojis.length],
+      x: 0,
+      y: 0,
+    }
+  );
   const ref = useRef<HTMLDivElement>(null);
   const presentOthers = (others ?? []).filter(
     (p) => p.updated > Date.now() - OldMs
@@ -67,9 +71,9 @@ const PresencePane = () => {
         className="text-xl"
         onChange={(e) => setLocation(e.target.value)}
       >
-        <option> PageA </option>
-        <option> PageB </option>
-        <option> PageC </option>
+        <option key="A"> PageA </option>
+        <option key="B"> PageB </option>
+        <option key="C"> PageC </option>
       </select>
       <p className="text-sm leading-5 text-gray-500">
         Simulating being on different pages
@@ -80,10 +84,11 @@ const PresencePane = () => {
         <FacePile people={others ?? []} />
         <select
           className="mx-2 text-xl"
+          defaultValue={data.emoji}
           onChange={(e) => updatePresence({ emoji: e.target.value })}
         >
           {Emojis.map((e) => (
-            <option selected={data.emoji === e}>{e}</option>
+            <option key={e}>{e}</option>
           ))}
         </select>
       </div>
