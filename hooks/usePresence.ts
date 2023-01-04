@@ -1,6 +1,5 @@
 import { Value } from 'convex/values';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Id } from '../convex/_generated/dataModel';
 import { useQuery, useMutation } from '../convex/_generated/react';
 import useSingleFlight from './useSingleFlight';
 
@@ -21,46 +20,38 @@ export default <T extends { [key: string]: Value }>(
   const [data, setData] = useState(initialData);
   const initialRef = useRef(initialData);
 
-  const [presenceId, setPresenceId] = useState<Id<'presence'>>();
   let presence: PresenceData<T>[] | undefined = useQuery(
     'presence:list',
     location,
-    presenceId ?? null
+    user
   );
   if (recencyMs) {
     presence = presence?.filter((p) => p.updated > Date.now() - recencyMs);
   }
 
   const updatePresence = useSingleFlight(useMutation('presence:update'));
-  const getOrCreate = useMutation('presence:getOrCreate');
 
   useEffect(() => {
-    void (async () => {
-      setPresenceId(await getOrCreate(user, location, initialRef.current));
-    })();
-    return () => setPresenceId(undefined);
-  }, [user, location, getOrCreate]);
+    void updatePresence(location, user, initialRef.current, true);
+  }, [updatePresence, location, user]);
 
   useEffect(() => {
-    if (!presenceId) return;
     const intervalId = setInterval(() => {
-      void updatePresence(presenceId, data);
+      void updatePresence(location, user, data);
     }, HEARTBEAT_PERIOD);
     // Whenever we have any data change, it will get cleared.
     return () => clearInterval(intervalId);
-  }, [updatePresence, presenceId, data]);
+  }, [updatePresence, location, user, data]);
 
   const updateSF = useCallback(
     (patch: {}) => {
       setData((last) => {
         const updated = { ...last, ...patch };
-        if (presenceId) {
-          void updatePresence(presenceId, updated);
-        }
+        void updatePresence(location, user, updated);
         return updated;
       });
     },
-    [presenceId, updatePresence]
+    [location, user, updatePresence]
   );
 
   return [data, presence, updateSF] as const;
