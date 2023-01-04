@@ -1,15 +1,15 @@
 import { useCallback, useRef } from 'react';
 
 /**
- * Generates a function that behaves like the passed in function,
- * but only be executed one at a time. If multiple calls are requested
- * before the current call has finished, it will only execute the last one.
+ * Wraps a function to single-flight invocations, using the latest args.
  *
- * @param fn Function to be called, with only one request in flight at a time.
- * @param deps The dependencies of the function, see useCallback.
- * To get eslint react-hooks/exhaustive-deps validating deps for this function,
- * add "useSingleFlight" to the "additionalHooks". See:
- * https://www.npmjs.com/package/eslint-plugin-react-hooks
+ * Generates a function that behaves like the passed in function,
+ * but only one execution runs at a time. If multiple calls are requested
+ * before the current call has finished, it will use the latest arguments
+ * for the next invocation.
+ *
+ * @param fn - Function to be called, with only one request in flight at a time.
+ * This must be a stable identifier, e.g. returned from useCallback.
  * @returns Function that can be called whenever, returning a promise that will
  * only resolve or throw if the underlying function gets called.
  */
