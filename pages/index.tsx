@@ -1,5 +1,6 @@
 import classNames from 'classnames';
 import type { NextPage } from 'next';
+import dynamic from 'next/dynamic';
 import Head from 'next/head';
 import Image from 'next/image';
 import { useRef, useState } from 'react';
@@ -13,7 +14,6 @@ const FacePile = ({ people }: { people: PresenceData<Data>[] }) => {
   return (
     <div className="isolate flex -space-x-2 overflow-hidden">
       {people
-        .slice(0, 10)
         .map((p) => ({ ...p, old: p.updated < now - OLD_MS }))
         .sort((p1, p2) =>
           p1.old === p2.old
@@ -41,13 +41,13 @@ const FacePile = ({ people }: { people: PresenceData<Data>[] }) => {
 };
 
 const Emojis =
-  '😀 😃 😄 😁 😆 😅 😂 🤣 🥲 🥹 😊 😇 🙂 🙃 😉 😌 😍 🥰 😘 😗 😙 😚 😋 😛 😝 😜 🤪 🤨 🧐 🤓 😎 🥸 🤩 🥳 😏 😒 😞 😔 😟 😕 🙁 😣 😖 😫 😩 🥺 😢 😭 😮‍💨 😤 😠 😡 🤬 🤯 😳 🥵 🥶 😱 😨 😰 😥 😓 🫣 🤗 🫡 🤔 🫢 🤭 🤫 🤥 😶 😶‍🌫️ 😐 😑 😬 🫠 🙄 😯 😦 😧 😮 😲 🥱 😴 🤤 😪 😵 😵‍💫 🫥 🤐 🥴 🤢 🤮 🤧 😷 🤒 🤕 🤑 🤠'.split(
+  '😀 😃 😄 😁 😆 😅 😂 🤣 🥲 🥹 😊 😇 🙂 🙃 😉 😌 😍 🥰 😘 😗 😙 😚 😋 😛 😝 😜 🤪 😎 🥸 🤩 🥳 😏 😳 🤔 🫢 🤭 🤫 😶 🫠 😮 🤤 😵‍💫 🥴 🤑 🤠'.split(
     ' '
   );
 
 const PresencePane = () => {
   const [userId] = useState(() => Math.floor(Math.random() * 10000));
-  const [location, setLocation] = useState('PageA');
+  const [location, setLocation] = useState('RoomA');
   const [data, others, updatePresence] = usePresence(
     location,
     'User' + userId,
@@ -69,9 +69,9 @@ const PresencePane = () => {
         className="text-xl"
         onChange={(e) => setLocation(e.target.value)}
       >
-        <option key="A"> PageA </option>
-        <option key="B"> PageB </option>
-        <option key="C"> PageC </option>
+        <option key="A"> RoomA </option>
+        <option key="B"> RoomB </option>
+        <option key="C"> RoomC </option>
       </select>
       <p className="text-sm leading-5 text-gray-500">
         Simulating being on different pages
@@ -156,6 +156,10 @@ const PresencePane = () => {
   );
 };
 
+const PresencePaneNoSSR = dynamic(() => Promise.resolve(PresencePane), {
+  ssr: false,
+});
+
 const Home: NextPage = () => {
   return (
     <div className="py-8 flex flex-col min-h-screen">
@@ -173,8 +177,8 @@ const Home: NextPage = () => {
           </a>
         </h1>
         <div className="flex flex-row">
-          <PresencePane />
-          <PresencePane />
+          <PresencePaneNoSSR />
+          <PresencePaneNoSSR />
         </div>
       </main>
 
