@@ -2,11 +2,11 @@ import classNames from 'classnames';
 import type { NextPage } from 'next';
 import Head from 'next/head';
 import Image from 'next/image';
-import { useMemo, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import usePresence, { PresenceData } from '../hooks/usePresence';
 
 type Data = { text: string; emoji: string; x: number; y: number };
-const OldMs = 10000;
+const OLD_MS = 10000;
 
 const FacePile = ({ people }: { people: PresenceData<Data>[] }) => {
   const now = Date.now();
@@ -14,30 +14,28 @@ const FacePile = ({ people }: { people: PresenceData<Data>[] }) => {
     <div className="isolate flex -space-x-2 overflow-hidden">
       {people
         .slice(0, 10)
-        .map((p) => ({ ...p, old: p.updated < now - OldMs }))
+        .map((p) => ({ ...p, old: p.updated < now - OLD_MS }))
         .sort((p1, p2) =>
           p1.old === p2.old
             ? p1.created - p2.created
-            : Number(p1.old) - Number(p2.old)
+            : Number(p2.old) - Number(p1.old)
         )
-        .map((p) => {
-          return (
-            <span
-              className={classNames(
-                'relative grayscale inline-block h-6 w-6 rounded-full bg-white ring-2 ring-white text-xl',
-                { grayscale: p.old }
-              )}
-              title={
-                p.data.text +
-                ' Last seen: ' +
-                new Date(p.updated).toDateString()
-              }
-            >
-              {p.data.emoji}
-            </span>
-          );
-        })
-        .reverse()}
+        .map((p) => (
+          <span
+            className={classNames(
+              'relative inline-block h-6 w-6 rounded-full bg-white ring-2 ring-white text-xl',
+              { grayscale: p.old }
+            )}
+            key={p.created}
+            title={
+              (p.data.text || p.user) +
+              ': Last seen ' +
+              new Date(p.updated).toDateString()
+            }
+          >
+            {p.data.emoji}
+          </span>
+        ))}
     </div>
   );
 };
@@ -48,11 +46,11 @@ const Emojis =
   );
 
 const PresencePane = () => {
-  const userId = useMemo(() => Math.floor(Math.random() * 10000), []);
+  const [userId] = useState(() => Math.floor(Math.random() * 10000));
   const [location, setLocation] = useState('PageA');
   const [data, others, updatePresence] = usePresence(
-    'User' + userId,
     location,
+    'User' + userId,
     {
       text: '',
       emoji: Emojis[userId % Emojis.length],
@@ -62,7 +60,7 @@ const PresencePane = () => {
   );
   const ref = useRef<HTMLDivElement>(null);
   const presentOthers = (others ?? []).filter(
-    (p) => p.updated > Date.now() - OldMs
+    (p) => p.updated > Date.now() - OLD_MS
   );
   return (
     <div className="flex flex-grow flex-col items-center">
