@@ -55,9 +55,9 @@ export default <T extends { [key: string]: Value }>(
   const heartbeat = useSingleFlight(useMutation('presence:heartbeat'));
 
   useEffect(() => {
-    updatePresence(room, user, data).catch(console.error);
+    void updatePresence(room, user, data);
     const intervalId = setInterval(() => {
-      heartbeat(room, user).catch(console.error);
+      void heartbeat(room, user);
     }, heartbeatPeriod);
     // Whenever we have any data change, it will get cleared.
     return () => clearInterval(intervalId);
