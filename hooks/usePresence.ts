@@ -64,7 +64,7 @@ export default <T extends { [key: string]: Value }>(
   }, [updatePresence, heartbeat, room, user, data, heartbeatPeriod]);
 
   // Updates the data, merged with previous data state.
-  const updateData = useCallback((patch) => {
+  const updateData = useCallback((patch: Partial<T>) => {
     setData((prevState) => {
       return { ...prevState, ...patch };
     });

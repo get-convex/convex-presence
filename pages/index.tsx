@@ -1,44 +1,13 @@
-import classNames from 'classnames';
 import type { NextPage } from 'next';
 import dynamic from 'next/dynamic';
 import Head from 'next/head';
 import Image from 'next/image';
-import { useRef, useState } from 'react';
-import usePresence, { PresenceData } from '../hooks/usePresence';
+import { useState } from 'react';
+import Facepile from '../components/Facepile';
+import SharedCursors from '../components/SharedCursors';
+import usePresence from '../hooks/usePresence';
 
-type Data = { text: string; emoji: string; x: number; y: number };
 const OLD_MS = 10000;
-
-const FacePile = ({ people }: { people: PresenceData<Data>[] }) => {
-  const now = Date.now();
-  return (
-    <div className="isolate flex -space-x-2 overflow-hidden">
-      {people
-        .map((p) => ({ ...p, old: p.updated < now - OLD_MS }))
-        .sort((p1, p2) =>
-          p1.old === p2.old
-            ? p1.created - p2.created
-            : Number(p2.old) - Number(p1.old)
-        )
-        .map((p) => (
-          <span
-            className={classNames(
-              'relative inline-block h-6 w-6 rounded-full bg-white ring-2 ring-white text-xl',
-              { grayscale: p.old }
-            )}
-            key={p.created}
-            title={
-              (p.data.text || p.user) +
-              ': Last seen ' +
-              new Date(p.updated).toDateString()
-            }
-          >
-            {p.data.emoji}
-          </span>
-        ))}
-    </div>
-  );
-};
 
 const Emojis =
   '😀 😃 😄 😁 😆 😅 😂 🤣 🥲 🥹 😊 😇 🙂 🙃 😉 😌 😍 🥰 😘 😗 😙 😚 😋 😛 😝 😜 🤪 😎 🥸 🤩 🥳 😏 😳 🤔 🫢 🤭 🤫 😶 🫠 😮 🤤 😵‍💫 🥴 🤑 🤠'.split(
@@ -58,7 +27,6 @@ const PresencePane = () => {
       y: 0,
     }
   );
-  const ref = useRef<HTMLDivElement>(null);
   const presentOthers = (others ?? []).filter(
     (p) => p.updated > Date.now() - OLD_MS
   );
@@ -79,7 +47,7 @@ const PresencePane = () => {
       <br />
       <h2>Facepile:</h2>
       <div className="flex p4 border-b border-solid flex-row justify-end">
-        <FacePile people={others ?? []} />
+        <Facepile othersPresence={others} />
         <select
           className="mx-2 text-xl"
           defaultValue={data.emoji}
@@ -91,42 +59,11 @@ const PresencePane = () => {
         </select>
       </div>
       <h2 className="mt-1">Shared cursors:</h2>
-      <div
-        ref={ref}
-        className="flex flex-row relative flex-wrap overflow-hidden justify-between text-7xl w-[500px] h-[500px] border-2 rounded p-6 m-2"
-        onPointerMove={(e) => {
-          const { x, y } = ref.current!.getBoundingClientRect();
-          void updatePresence({ x: e.clientX - x, y: e.clientY - y });
-        }}
-      >
-        <span
-          className="text-base absolute cursor-none"
-          key="mine"
-          style={{
-            left: data.x,
-            top: data.y,
-            transform: 'translate(-50%, -50%)',
-          }}
-        >
-          {data.emoji + ' ' + data.text}
-        </span>
-        {presentOthers
-          .filter((p) => p.data.x && p.data.y)
-          .map((p) => (
-            <span
-              className="text-base absolute"
-              key={p.created}
-              style={{
-                left: p.data.x,
-                top: p.data.y,
-                transform: 'translate(-50%, -50%)',
-                transition: 'all 0.20s ease-out',
-              }}
-            >
-              {p.data.emoji + ' ' + p.data.text}
-            </span>
-          ))}
-      </div>
+      <SharedCursors
+        myPresenceData={data}
+        othersPresence={others}
+        updatePresence={updatePresence}
+      />
       <h2>Shared text:</h2>
       <div className="w-1/2">
         <span>
