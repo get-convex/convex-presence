@@ -6,6 +6,7 @@ import { useState } from 'react';
 import Facepile from '../components/Facepile';
 import SharedCursors from '../components/SharedCursors';
 import usePresence from '../hooks/usePresence';
+import useTypingIndicator from '../hooks/useTypingIndicator';
 
 const OLD_MS = 10000;
 
@@ -25,8 +26,10 @@ const PresencePane = () => {
       emoji: Emojis[userId % Emojis.length],
       x: 0,
       y: 0,
+      typing: false as boolean,
     }
   );
+  useTypingIndicator(data.text, updatePresence);
   const presentOthers = (others ?? []).filter(
     (p) => p.updated > Date.now() - OLD_MS
   );
@@ -83,7 +86,12 @@ const PresencePane = () => {
             .sort((p1, p2) => p2.created - p1.created)
             .map((p) => (
               <li key={p.created}>
-                <p>{p.data.emoji + ': ' + p.data.text}</p>
+                <p>
+                  {p.data.emoji +
+                    ': ' +
+                    p.data.text +
+                    (p.data.typing ? '...' : '')}
+                </p>
               </li>
             ))}
         </ul>

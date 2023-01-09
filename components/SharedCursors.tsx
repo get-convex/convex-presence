@@ -2,7 +2,13 @@ import { useRef } from 'react';
 import { PresenceData } from '../hooks/usePresence';
 
 const OLD_MS = 10000;
-type Data = { text: string; emoji: string; x: number; y: number };
+type Data = {
+  text: string;
+  emoji: string;
+  x: number;
+  y: number;
+  typing: boolean;
+};
 type SharedCursorsProps = {
   myPresenceData: Data;
   othersPresence?: PresenceData<Data>[];
