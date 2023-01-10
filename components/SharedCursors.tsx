@@ -40,28 +40,26 @@ export default ({
       >
         {myPresenceData.emoji + ' ' + myPresenceData.text}
       </span>
-      {othersPresence &&
-        othersPresence
-          .filter(
-            (presence) =>
-              presence.data.x &&
-              presence.data.y &&
-              presence.updated > Date.now() - OLD_MS
-          )
-          .map((presence) => (
-            <span
-              className="text-base absolute"
-              key={presence.created}
-              style={{
-                left: presence.data.x,
-                top: presence.data.y,
-                transform: 'translate(-50%, -50%)',
-                transition: 'all 0.20s ease-out',
-              }}
-            >
-              {presence.data.emoji + ' ' + presence.data.text}
-            </span>
-          ))}
+      {othersPresence
+        ?.filter(
+          (presence) =>
+            presence.data.x &&
+            presence.data.y &&
+            presence.updated > Date.now() - OLD_MS
+        )
+        .map((presence) => (
+          <span
+            className="text-base absolute transition-all duration-200"
+            key={presence.created}
+            style={{
+              left: presence.data.x,
+              top: presence.data.y,
+              transform: 'translate(-50%, -50%)',
+            }}
+          >
+            {presence.data.emoji + ' ' + presence.data.text}
+          </span>
+        ))}
     </div>
   );
 };
