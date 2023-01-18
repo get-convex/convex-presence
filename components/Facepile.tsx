@@ -1,8 +1,7 @@
 import classNames from 'classnames';
 import { useEffect, useState } from 'react';
-import { PresenceData } from '../hooks/usePresence';
+import { isOnline, PresenceData } from '../hooks/usePresence';
 
-const OLD_MS = 10000;
 const UPDATE_MS = 1000;
 
 type FacePileProps = {
@@ -20,7 +19,7 @@ export default ({ othersPresence }: FacePileProps) => {
         ?.slice(0, 5)
         .map((presence) => ({
           ...presence,
-          old: presence.updated < now - OLD_MS,
+          old: !isOnline(presence, now),
         }))
         .sort((presence1, presence2) =>
           presence1.old === presence2.old

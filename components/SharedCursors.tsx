@@ -1,7 +1,6 @@
 import { useRef } from 'react';
-import { PresenceData } from '../hooks/usePresence';
+import { PresenceData, isOnline } from '../hooks/usePresence';
 
-const OLD_MS = 10000;
 type Data = {
   text: string;
   emoji: string;
@@ -41,12 +40,8 @@ export default ({
         {myPresenceData.emoji + ' ' + myPresenceData.text}
       </span>
       {othersPresence
-        ?.filter(
-          (presence) =>
-            presence.data.x &&
-            presence.data.y &&
-            presence.updated > Date.now() - OLD_MS
-        )
+        ?.filter(isOnline)
+        .filter((presence) => presence.data.x && presence.data.y)
         .map((presence) => (
           <span
             className="text-base absolute transition-all duration-200"

@@ -11,6 +11,7 @@ export type PresenceData<D> = {
 };
 
 const HEARTBEAT_PERIOD = 5000;
+const OLD_MS = 10000;
 
 /**
  * usePresence is a React hook for reading & writing presence data.
@@ -40,7 +41,7 @@ const HEARTBEAT_PERIOD = 5000;
  * @returns A list with 1. this user's data; 2. A list of other users' data;
  * 3. function to update this user's data. It will do a shallow merge.
  */
-export default <T extends { [key: string]: Value }>(
+export const usePresence = <T extends { [key: string]: Value }>(
   room: string,
   user: string,
   initialData: T,
@@ -72,3 +73,19 @@ export default <T extends { [key: string]: Value }>(
 
   return [data, presence, updateData] as const;
 };
+
+/**
+ * isOnline determines a user's online status by how recently they've updated.
+ *
+ * @param presence - The presence data for one user returned from usePresence.
+ * @param now - If specified, the time it should consider to be "now".
+ * @returns True if the user has updated their presence recently.
+ */
+export const isOnline = <D>(presence: PresenceData<D>, now?: number) => {
+  if (now === undefined) {
+    now = Date.now();
+  }
+  return now - presence.updated < OLD_MS;
+};
+
+export default usePresence;
