@@ -81,11 +81,8 @@ export const usePresence = <T extends { [key: string]: Value }>(
  * @param now - If specified, the time it should consider to be "now".
  * @returns True if the user has updated their presence recently.
  */
-export const isOnline = <D>(presence: PresenceData<D>, now?: number) => {
-  if (now === undefined) {
-    now = Date.now();
-  }
-  return now - presence.updated < OLD_MS;
+export const isOnline = <D>(presence: PresenceData<D>) => {
+  return Date.now() - presence.updated < OLD_MS;
 };
 
 export default usePresence;

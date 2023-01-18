@@ -8,7 +8,7 @@ type FacePileProps = {
   othersPresence?: PresenceData<{ emoji: string }>[];
 };
 export default ({ othersPresence }: FacePileProps) => {
-  const [now, setNow] = useState(Date.now());
+  const [, setNow] = useState(Date.now());
   useEffect(() => {
     const intervalId = setInterval(() => setNow(Date.now()), UPDATE_MS);
     return () => clearInterval(intervalId);
@@ -19,7 +19,7 @@ export default ({ othersPresence }: FacePileProps) => {
         ?.slice(0, 5)
         .map((presence) => ({
           ...presence,
-          old: !isOnline(presence, now),
+          old: !isOnline(presence),
         }))
         .sort((presence1, presence2) =>
           presence1.old === presence2.old
