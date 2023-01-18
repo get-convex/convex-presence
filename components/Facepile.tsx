@@ -19,24 +19,24 @@ export default ({ othersPresence }: FacePileProps) => {
         ?.slice(0, 5)
         .map((presence) => ({
           ...presence,
-          old: !isOnline(presence),
+          online: !isOnline(presence),
         }))
         .sort((presence1, presence2) =>
-          presence1.old === presence2.old
+          presence1.online === presence2.online
             ? presence1.created - presence2.created
-            : Number(presence2.old) - Number(presence1.old)
+            : Number(presence1.online) - Number(presence2.online)
         )
         .map((presence) => (
           <span
             className={classNames(
               'relative inline-block h-6 w-6 rounded-full bg-white ring-2 ring-white text-xl',
-              { grayscale: presence.old }
+              { grayscale: !presence.online }
             )}
             key={presence.created}
             title={
-              presence.old
-                ? 'Last seen ' + new Date(presence.updated).toDateString()
-                : 'Online'
+              presence.online
+                ? 'Online'
+                : 'Last seen ' + new Date(presence.updated).toDateString()
             }
           >
             {presence.data.emoji}
