@@ -55,24 +55,35 @@ export const usePresence = <T extends { [key: string]: Value }>(
   if (presence) {
     presence = presence.filter((p) => p.user !== user);
   }
+  const convex = useConvex();
   const updatePresence = useSingleFlight(useMutation(api.presence.update));
   const heartbeat = useSingleFlight(useMutation(api.presence.heartbeat));
 
+  // Initial update and signal departure when we leave.
   useEffect(() => {
     void updatePresence({ room, user, data });
+    return () => convex.mutation('presence:leave', { room, user });
+  }, []);
+
+  useEffect(() => {
     const intervalId = setInterval(() => {
       void heartbeat({ room, user });
     }, heartbeatPeriod);
     // Whenever we have any data change, it will get cleared.
     return () => clearInterval(intervalId);
-  }, [updatePresence, heartbeat, room, user, data, heartbeatPeriod]);
+  }, [heartbeat, room, user, heartbeatPeriod]);
 
   // Updates the data, merged with previous data state.
-  const updateData = useCallback((patch: Partial<T>) => {
-    setData((prevState) => {
-      return { ...prevState, ...patch };
-    });
-  }, []);
+  const updateData = useCallback(
+    (patch: Partial<T>) => {
+      setData((prevState) => {
+        const data = { ...prevState, ...patch };
+        void updatePresence({ room, user, data });
+        return data;
+      });
+    },
+    [updatePresence]
+  );
 
   return [data, presence, updateData] as const;
 };
