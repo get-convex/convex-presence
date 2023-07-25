@@ -1,11 +1,12 @@
-import { defineSchema, defineTable, s } from 'convex/schema';
+import { defineSchema, defineTable } from 'convex/server';
+import { v } from 'convex/values';
 
 export default defineSchema({
   presence: defineTable({
-    user: s.string(),
-    room: s.string(),
-    updated: s.number(),
-    data: s.any(),
+    user: v.string(),
+    room: v.string(),
+    updated: v.number(),
+    data: v.any(),
   })
     // Index for fetching presence data
     .index('by_room_updated', ['room', 'updated'])

@@ -7,7 +7,8 @@
  * - Use Convex `auth` to authenticate users rather than passing up a "user"
  * - Check that the user is allowed to be in a given room.
  */
-import { query, mutation } from './_generated/server';
+import { v } from "convex/values"
+import { query, mutation } from "./_generated/server";
 
 const LIST_LIMIT = 20;
 
@@ -21,16 +22,17 @@ const LIST_LIMIT = 20;
  * page, chat channel, game instance.
  * @param user - The user associated with the presence data.
  */
-export const update = mutation(
-  async ({ db }, room: string, user: string, data: any) => {
-    const existing = await db
-      .query('presence')
-      .withIndex('by_user_room', (q) => q.eq('user', user).eq('room', room))
+export const update = mutation({
+  args: { room: v.string(), user: v.string(), data: v.any() },
+  handler: async ( ctx, { room, user, data }) => {
+    const existing = await ctx.db
+      .query("presence")
+      .withIndex("by_user_room", (q) => q.eq("user", user).eq("room", room))
       .unique();
     if (existing) {
-      await db.patch(existing._id, { data, updated: Date.now() });
+      await ctx.db.patch(existing._id, { data, updated: Date.now() });
     } else {
-      await db.insert('presence', {
+      await ctx.db.insert("presence", {
         user,
         data,
         room,
@@ -38,26 +40,27 @@ export const update = mutation(
       });
     }
   }
-);
+});
 
 /**
- * Updates the "updated" timestampe for a given user's presence in a room.
+ * Updates the "updated" timestamp for a given user's presence in a room.
  *
  * @param room - The location associated with the presence data. Examples:
  * page, chat channel, game instance.
  * @param user - The user associated with the presence data.
  */
-export const heartbeat = mutation(
-  async ({ db }, room: string, user: string) => {
-    const existing = await db
-      .query('presence')
-      .withIndex('by_user_room', (q) => q.eq('user', user).eq('room', room))
+export const heartbeat = mutation({
+  args: { room: v.string(), user: v.string() },
+  handler: async (ctx, { room, user }) => {
+    const existing = await ctx.db
+      .query("presence")
+      .withIndex("by_user_room", (q) => q.eq("user", user).eq("room", room))
       .unique();
     if (existing) {
-      await db.patch(existing._id, { updated: Date.now() });
+      await ctx.db.patch(existing._id, { updated: Date.now() });
     }
   }
-);
+});
 
 /**
  * Lists the presence data for N users in a room, ordered by recent update.
@@ -67,11 +70,13 @@ export const heartbeat = mutation(
  * @returns A list of presence objects, ordered by recent update, limited to
  * the most recent N.
  */
-export const list = query(async ({ db }, room: string) => {
-  const presence = await db
-    .query('presence')
-    .withIndex('by_room_updated', (q) => q.eq('room', room))
-    .order('desc')
+export const list = query({
+  args: { room: v.string() },
+  handler:async (ctx, { room }) => {
+  const presence = await ctx.db
+    .query("presence")
+    .withIndex("by_room_updated", (q) => q.eq("room", room))
+    .order("desc")
     .take(LIST_LIMIT);
   return presence.map(({ _creationTime, updated, user, data }) => ({
     created: _creationTime,
@@ -79,4 +84,4 @@ export const list = query(async ({ db }, room: string) => {
     user,
     data,
   }));
-});
+}});
