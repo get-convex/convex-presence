@@ -1,18 +1,18 @@
 import { api } from '../convex/_generated/api';
-import { useQuery, useMutation, useConvex } from 'convex/react';
+import { useQuery, useMutation } from 'convex/react';
 import { Value } from 'convex/values';
 import { useCallback, useEffect, useState } from 'react';
 import useSingleFlight from './useSingleFlight';
 
 export type PresenceData<D> = {
   created: number;
-  updated: number;
+  latestJoin: number;
   user: string;
   data: D;
+  present: boolean;
 };
 
 const HEARTBEAT_PERIOD = 5000;
-const OLD_MS = 10000;
 
 /**
  * usePresence is a React hook for reading & writing presence data.
@@ -55,14 +55,12 @@ export const usePresence = <T extends { [key: string]: Value }>(
   if (presence) {
     presence = presence.filter((p) => p.user !== user);
   }
-  const convex = useConvex();
   const updatePresence = useSingleFlight(useMutation(api.presence.update));
   const heartbeat = useSingleFlight(useMutation(api.presence.heartbeat));
 
   // Initial update and signal departure when we leave.
   useEffect(() => {
     void updatePresence({ room, user, data });
-    return () => convex.mutation('presence:leave', { room, user });
   }, []);
 
   useEffect(() => {
@@ -86,17 +84,6 @@ export const usePresence = <T extends { [key: string]: Value }>(
   );
 
   return [data, presence, updateData] as const;
-};
-
-/**
- * isOnline determines a user's online status by how recently they've updated.
- *
- * @param presence - The presence data for one user returned from usePresence.
- * @param now - If specified, the time it should consider to be "now".
- * @returns True if the user has updated their presence recently.
- */
-export const isOnline = <D>(presence: PresenceData<D>) => {
-  return Date.now() - presence.updated < OLD_MS;
 };
 
 export default usePresence;

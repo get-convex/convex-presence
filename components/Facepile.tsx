@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import { useEffect, useState } from 'react';
-import { isOnline, PresenceData } from '../hooks/usePresence';
+import { PresenceData } from '../hooks/usePresence';
 
 const UPDATE_MS = 1000;
 
@@ -19,7 +19,7 @@ export default ({ othersPresence }: FacePileProps) => {
         ?.slice(0, 5)
         .map((presence) => ({
           ...presence,
-          online: !isOnline(presence),
+          online: presence.present,
         }))
         .sort((presence1, presence2) =>
           presence1.online === presence2.online
@@ -36,7 +36,7 @@ export default ({ othersPresence }: FacePileProps) => {
             title={
               presence.online
                 ? 'Online'
-                : 'Last seen ' + new Date(presence.updated).toDateString()
+                : 'Last seen ' + new Date(presence.latestJoin).toDateString()
             }
           >
             {presence.data.emoji}
