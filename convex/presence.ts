@@ -74,6 +74,12 @@ export const heartbeat = mutation({
       .unique();
     if (existing) {
       await ctx.db.patch(existing._id, { updated: Date.now() });
+    } else {
+      await ctx.db.insert('presence_heartbeats', {
+        user,
+        room,
+        updated: Date.now(),
+      });
     }
   },
 });

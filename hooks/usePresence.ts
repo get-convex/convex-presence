@@ -80,7 +80,7 @@ export const usePresence = <T extends { [key: string]: Value }>(
         return data;
       });
     },
-    [updatePresence]
+    [room, user, updatePresence]
   );
 
   return [data, presence, updateData] as const;
