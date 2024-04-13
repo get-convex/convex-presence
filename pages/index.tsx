@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useState } from 'react';
 import Facepile from '../components/Facepile';
 import SharedCursors from '../components/SharedCursors';
-import usePresence, { isOnline } from '../hooks/usePresence';
+import usePresence from '../hooks/usePresence';
 import useTypingIndicator from '../hooks/useTypingIndicator';
 
 const Emojis =
@@ -28,7 +28,7 @@ const PresencePane = () => {
     }
   );
   useTypingIndicator(data.text, updatePresence);
-  const presentOthers = (others ?? []).filter(isOnline);
+  const presentOthers = (others ?? []).filter((p) => p.present);
   return (
     <div className="flex flex-grow flex-col items-center">
       <select

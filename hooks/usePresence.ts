@@ -6,13 +6,13 @@ import useSingleFlight from './useSingleFlight';
 
 export type PresenceData<D> = {
   created: number;
-  updated: number;
+  latestJoin: number;
   user: string;
   data: D;
+  present: boolean;
 };
 
 const HEARTBEAT_PERIOD = 5000;
-const OLD_MS = 10000;
 
 /**
  * usePresence is a React hook for reading & writing presence data.
@@ -58,34 +58,32 @@ export const usePresence = <T extends { [key: string]: Value }>(
   const updatePresence = useSingleFlight(useMutation(api.presence.update));
   const heartbeat = useSingleFlight(useMutation(api.presence.heartbeat));
 
+  // Initial update and signal departure when we leave.
   useEffect(() => {
     void updatePresence({ room, user, data });
+  }, []);
+
+  useEffect(() => {
     const intervalId = setInterval(() => {
       void heartbeat({ room, user });
     }, heartbeatPeriod);
     // Whenever we have any data change, it will get cleared.
     return () => clearInterval(intervalId);
-  }, [updatePresence, heartbeat, room, user, data, heartbeatPeriod]);
+  }, [heartbeat, room, user, heartbeatPeriod]);
 
   // Updates the data, merged with previous data state.
-  const updateData = useCallback((patch: Partial<T>) => {
-    setData((prevState) => {
-      return { ...prevState, ...patch };
-    });
-  }, []);
+  const updateData = useCallback(
+    (patch: Partial<T>) => {
+      setData((prevState) => {
+        const data = { ...prevState, ...patch };
+        void updatePresence({ room, user, data });
+        return data;
+      });
+    },
+    [room, user, updatePresence]
+  );
 
   return [data, presence, updateData] as const;
-};
-
-/**
- * isOnline determines a user's online status by how recently they've updated.
- *
- * @param presence - The presence data for one user returned from usePresence.
- * @param now - If specified, the time it should consider to be "now".
- * @returns True if the user has updated their presence recently.
- */
-export const isOnline = <D>(presence: PresenceData<D>) => {
-  return Date.now() - presence.updated < OLD_MS;
 };
 
 export default usePresence;

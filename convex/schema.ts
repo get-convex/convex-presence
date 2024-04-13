@@ -5,11 +5,14 @@ export default defineSchema({
   presence: defineTable({
     user: v.string(),
     room: v.string(),
-    updated: v.number(),
+    present: v.boolean(),
+    latestJoin: v.number(),
     data: v.any(),
-  })
-    // Index for fetching presence data
-    .index('by_room_updated', ['room', 'updated'])
-    // Index for updating presence data
-    .index('by_user_room', ['user', 'room']),
+  }).index('room_present_user', ['room', 'present', 'user']),
+
+  presence_heartbeats: defineTable({
+    user: v.string(),
+    room: v.string(),
+    updated: v.number(),
+  }).index('by_room_user', ['room', 'user']),
 });

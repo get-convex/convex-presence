@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { PresenceData, isOnline } from '../hooks/usePresence';
+import { PresenceData } from '../hooks/usePresence';
 
 type Data = {
   text: string;
@@ -40,7 +40,7 @@ export default ({
         {myPresenceData.emoji + ' ' + myPresenceData.text}
       </span>
       {othersPresence
-        ?.filter(isOnline)
+        ?.filter((p) => p.present)
         .filter((presence) => presence.data.x && presence.data.y)
         .map((presence) => (
           <span
