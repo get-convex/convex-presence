@@ -8,10 +8,12 @@
  * - Check that the user is allowed to be in a given room.
  */
 import { v } from 'convex/values';
-import { query, mutation } from './_generated/server';
+import { query, mutation, internalMutation } from './_generated/server';
+import { internal } from './_generated/api';
 import { Doc } from './_generated/dataModel';
 
 const LIST_LIMIT = 20;
+const MARK_AS_GONE_MS = 8_000;
 
 /**
  * Overwrites the presence data for a given user in a room.
@@ -72,15 +74,42 @@ export const heartbeat = mutation({
       .query('presence_heartbeats')
       .withIndex('by_room_user', (q) => q.eq('room', room).eq('user', user))
       .unique();
+    const markAsGone = await ctx.scheduler.runAfter(
+      MARK_AS_GONE_MS,
+      internal.presence.markAsGone,
+      { room, user }
+    );
     if (existing) {
-      await ctx.db.patch(existing._id, { updated: Date.now() });
+      const watchdog = await ctx.db.system.get(existing.markAsGone);
+      if (watchdog && watchdog.state.kind === 'pending') {
+        await ctx.scheduler.cancel(watchdog._id);
+      }
+      await ctx.db.patch(existing._id, {
+        markAsGone,
+      });
     } else {
       await ctx.db.insert('presence_heartbeats', {
         user,
         room,
-        updated: Date.now(),
+        markAsGone,
       });
     }
+  },
+});
+
+export const markAsGone = internalMutation({
+  args: { room: v.string(), user: v.string() },
+  handler: async (ctx, args) => {
+    const presence = await ctx.db
+      .query('presence')
+      .withIndex('room_present_user', (q) =>
+        q.eq('room', args.room).eq('present', true).eq('user', args.user)
+      )
+      .unique();
+    if (!presence) {
+      return;
+    }
+    await ctx.db.patch(presence._id, { present: false });
   },
 });
 

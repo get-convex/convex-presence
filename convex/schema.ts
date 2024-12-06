@@ -13,6 +13,6 @@ export default defineSchema({
   presence_heartbeats: defineTable({
     user: v.string(),
     room: v.string(),
-    updated: v.number(),
+    markAsGone: v.id('_scheduled_functions'),
   }).index('by_room_user', ['room', 'user']),
 });
