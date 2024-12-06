@@ -28,19 +28,10 @@ const MARK_AS_GONE_MS = 8_000;
 export const update = mutation({
   args: { room: v.string(), user: v.string(), data: v.any() },
   handler: async (ctx, { room, user, data }) => {
-    const existing =
-      (await ctx.db
-        .query('presence')
-        .withIndex('room_present_user', (q) =>
-          q.eq('room', room).eq('present', true).eq('user', user)
-        )
-        .unique()) ||
-      (await ctx.db
-        .query('presence')
-        .withIndex('room_present_user', (q) =>
-          q.eq('room', room).eq('present', false).eq('user', user)
-        )
-        .unique());
+    const existing = await ctx.db
+      .query('presence')
+      .withIndex('room_user', (q) => q.eq('room', room).eq('user', user))
+      .unique();
     if (existing) {
       const patch: Partial<Doc<'presence'>> = { data };
       if (existing.present === false) {
@@ -102,11 +93,11 @@ export const markAsGone = internalMutation({
   handler: async (ctx, args) => {
     const presence = await ctx.db
       .query('presence')
-      .withIndex('room_present_user', (q) =>
-        q.eq('room', args.room).eq('present', true).eq('user', args.user)
+      .withIndex('room_user', (q) =>
+        q.eq('room', args.room).eq('user', args.user)
       )
       .unique();
-    if (!presence) {
+    if (!presence || presence.present === false) {
       return;
     }
     await ctx.db.patch(presence._id, { present: false });
@@ -126,7 +117,7 @@ export const list = query({
   handler: async (ctx, { room }) => {
     const presence = await ctx.db
       .query('presence')
-      .withIndex('room_present_user', (q) =>
+      .withIndex('room_present_join', (q) =>
         q.eq('room', room).eq('present', true)
       )
       .take(LIST_LIMIT);
